@@ -39,6 +39,9 @@ $$;
 alter table public.households enable row level security;
 alter table public.household_members enable row level security;
 
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.households TO authenticated;
+GRANT SELECT, INSERT, DELETE ON public.household_members TO authenticated;
+
 -- HOUSEHOLDS POLICIES
 
 CREATE POLICY "Owners can view their households"
@@ -60,6 +63,11 @@ on public.households FOR UPDATE
 TO authenticated
 USING (owner_id = auth.uid())
 WITH CHECK (owner_id = auth.uid());
+
+CREATE POLICY "Owners can delete their households"
+ON public.households FOR DELETE
+TO authenticated
+USING (owner_id = auth.uid());
 
 -- HOUSEHOLD MEMBERS POLICIES
 
