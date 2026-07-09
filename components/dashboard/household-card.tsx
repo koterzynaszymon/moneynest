@@ -11,6 +11,7 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { deleteHousehold } from "@/lib/households/actions";
+import Link from "next/link";
 
 import { useRouter } from "next/navigation";
 
@@ -64,8 +65,8 @@ export function HouseholdCard({
         >
           Delete Household
         </Button>
-        <Button variant="outline" size="sm" className="w-full">
-          View Household
+        <Button asChild variant="outline" size="sm" className="w-full">
+          <Link href={`/household/${id}`}>View Household</Link>
         </Button>
       </CardFooter>
     </Card>
