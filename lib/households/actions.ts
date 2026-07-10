@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "../supabase/server";
 import { Household } from "../types/household";
-import { isHouseholdOwner, isUserInHousehold } from "./queries";
+import { getHouseholdOwnerId, isHouseholdOwner, isUserInHousehold } from "./queries";
 
 type CreateHouseholdResult =
   | { success: true; household: Household }
@@ -155,4 +155,23 @@ export async function addHouseholdMember(householdId: string, email: string) {
   revalidatePath(`/household/${householdId}`);
 
   return { success: true, message: "User added to household successfully" };
+}
+
+
+export async function removeHouseholdMember(householdId: string, memberId: string) {
+  const supabase = await createClient();
+
+  const isOwner = await isHouseholdOwner(householdId);
+
+  if (!isOwner) return { success: false, message: "You are not the owner of this household" };
+
+  const ownerId = await getHouseholdOwnerId(householdId);
+  if (memberId === ownerId) return { success: false, message: "You cannot remove the owner from the household" };
+
+  const { error: deleteError } = await supabase.from("household_members").delete().eq("household_id", householdId).eq("member_id", memberId);
+  if (deleteError) return { success: false, message: deleteError.message };
+
+
+  revalidatePath(`/household/${householdId}`);
+  return { success: true, message: "User removed from household successfully" };
 }

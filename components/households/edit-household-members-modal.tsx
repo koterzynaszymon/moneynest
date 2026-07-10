@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Delete, Edit, Trash, Trash2 } from "lucide-react";
 import { HouseholdMemberView } from "@/lib/types/user";
 import { useState } from "react";
-import { addHouseholdMember } from "@/lib/households/actions";
+import { addHouseholdMember, removeHouseholdMember } from "@/lib/households/actions";
 import { toast } from "sonner";
 
 export default function EditHouseholdMembersModal({
@@ -38,7 +38,22 @@ export default function EditHouseholdMembersModal({
   const isSubmitDisabled =
     !email.trim() || !isValidEmail || isAlreadyAMember || isLoading;
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+
+
+  async function handleRemoveMember(memberId: string) {
+
+    if(confirm("Are you sure you want to remove this member from the household?")) {  
+      const result = await removeHouseholdMember(householdId, memberId);
+      if(result.success) {
+        toast.success(result.message);
+      } else {
+        toast.error(result.message);
+        setError(result.message);
+      }
+    }
+  }
+
+  async function handleAddMember(e: React.FormEvent<HTMLFormElement>) {
     setError(null);
     e.preventDefault();
     setIsLoading(true);
@@ -54,6 +69,8 @@ export default function EditHouseholdMembersModal({
     }
     setIsLoading(false);
   }
+
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -62,7 +79,7 @@ export default function EditHouseholdMembersModal({
         </button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-sm">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleAddMember}>
           <DialogHeader>
             <DialogTitle>Current Household Members</DialogTitle>
             <DialogDescription>
@@ -81,7 +98,7 @@ export default function EditHouseholdMembersModal({
                     <span className="text-sm text-muted-foreground text-right">
                       {member.role === "owner" ? "Owner" : "Member"}
                     </span>
-                    <button type="button" className="justify-self-end">
+                    <button type="button" className="justify-self-end" onClick={() => handleRemoveMember(member.user_id)}>
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </button>
                   </div>
