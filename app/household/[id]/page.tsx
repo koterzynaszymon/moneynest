@@ -39,6 +39,8 @@ async function HouseholdDetailContent({
             icon={FolderTree}
             title="Categories"
             description="Organize spending and income with shared household categories."
+            footerButtonText="Manage categories"
+            footerButtonLink={`/household/${id}/categories`}
           />
           <ModuleCard
             icon={Receipt}

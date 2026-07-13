@@ -59,7 +59,7 @@ export function HouseholdCard({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-muted-foreground hover:text-destructive text-destructive"
+          className="h-8 w-8 hover:text-destructive text-destructive"
           onClick={() => handleDelete()}
           disabled={isLoading}
           aria-label={`Delete ${name}`}

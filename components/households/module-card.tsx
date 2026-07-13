@@ -2,18 +2,23 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import type { LucideIcon } from "lucide-react";
+import Link from "next/link";
 
 type ModuleCardProps = {
   title: string;
   description: string;
   icon?: LucideIcon;
+  footerButtonText?: string;
+  footerButtonLink?: string;
 };
 
-export function ModuleCard({ title, description, icon: Icon }: ModuleCardProps) {
+export function ModuleCard({ title, description, icon: Icon, footerButtonText, footerButtonLink }: ModuleCardProps) {
   return (
     <Card className="h-full">
       <CardHeader>
@@ -32,6 +37,13 @@ export function ModuleCard({ title, description, icon: Icon }: ModuleCardProps) 
           Placeholder for the module content.
         </div>
       </CardContent>
+      {footerButtonText && (
+        <CardFooter className="flex justify-end">
+          <Button asChild>
+            <Link href={footerButtonLink ?? ""}>{footerButtonText}</Link>
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   );
 }
