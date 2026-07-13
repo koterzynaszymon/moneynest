@@ -24,7 +24,7 @@ export default function CreateHouseholdModal() {
 
   const [open, setOpen] = useState(false);
   const [householdName, setHouseholdName] = useState("My home");
-  const [currency, setCurrency] = useState("PLN");
+  const [currency] = useState("PLN");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

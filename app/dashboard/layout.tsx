@@ -2,6 +2,7 @@ import { AuthButton } from "@/components/auth-button";
 import { EnvVarWarning } from "@/components/env-var-warning";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { hasEnvVars } from "@/lib/utils";
+import { PiggyBank } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -13,10 +14,13 @@ export default function ProtectedLayout({
   return (
     <main className="min-h-screen flex flex-col items-center">
       <div className="flex-1 w-full flex flex-col gap-12 items-center">
-        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-          <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
-            <Link href={"/"} className="font-semibold">
-              MoneyNest
+        <nav className="sticky top-0 z-50 w-full flex justify-center border-b border-border/60 bg-background/70 backdrop-blur-md">
+          <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm h-16">
+            <Link href={"/"} className="flex items-center gap-2 font-semibold">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                <PiggyBank className="h-5 w-5" />
+              </span>
+              <span className="font-display text-base">MoneyNest</span>
             </Link>
             {!hasEnvVars ? (
               <EnvVarWarning />

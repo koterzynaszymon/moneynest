@@ -14,7 +14,7 @@ import {
 import { Field, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Delete, Edit, Trash, Trash2 } from "lucide-react";
+import { Edit, Trash2 } from "lucide-react";
 import { HouseholdMemberView } from "@/lib/types/user";
 import { useState } from "react";
 import { addHouseholdMember, removeHouseholdMember } from "@/lib/households/actions";

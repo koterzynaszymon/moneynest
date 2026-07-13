@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
+import { FolderTree, Receipt } from "lucide-react";
+
 import { HouseholdHeader } from "@/components/households/household-header";
-import { MembersCard } from "@/components/households/members-card";
 import { ModuleCard } from "@/components/households/module-card";
 import {
   getHouseholdById,
@@ -35,10 +36,12 @@ async function HouseholdDetailContent({
       <section className="grid gap-6 lg:grid-cols-1">
         <div className="grid gap-6 sm:grid-cols-2">
           <ModuleCard
+            icon={FolderTree}
             title="Categories"
             description="Organize spending and income with shared household categories."
           />
           <ModuleCard
+            icon={Receipt}
             title="Transactions"
             description="Track activity across the household once transaction flows are added."
           />
