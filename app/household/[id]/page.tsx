@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
 
 import { FolderTree, Receipt } from "lucide-react";
 
@@ -18,7 +17,7 @@ type HouseholdDetailPageProps = {
   }>;
 };
 
-async function HouseholdDetailContent({
+export default async function HouseholdDetailPage({
   params,
 }: HouseholdDetailPageProps) {
   const { id } = await params;
@@ -33,7 +32,10 @@ async function HouseholdDetailContent({
   }
 
   const previewCategories = categories.slice(0, 8);
-  const hiddenCategoryCount = Math.max(categories.length - previewCategories.length, 0);
+  const hiddenCategoryCount = Math.max(
+    categories.length - previewCategories.length,
+    0,
+  );
 
   return (
     <div className="space-y-6">
@@ -73,26 +75,14 @@ async function HouseholdDetailContent({
           <ModuleCard
             icon={Receipt}
             title="Transactions"
-            description="Track activity across the household once transaction flows are added."
+            description="Track activity across the household."
+            footerButtonText="View transactions"
+            footerButtonLink={`/household/${id}/transactions`}
           >
-            <div className="rounded-lg border border-dashed px-4 py-6 text-sm text-muted-foreground">
-              Transactions are coming next.
-            </div>
+            <p>Transactions are coming next.</p>
           </ModuleCard>
         </div>
       </section>
     </div>
-  );
-}
-
-export default function HouseholdDetailPage(params: HouseholdDetailPageProps) {
-  return (
-    <Suspense
-      fallback={
-        <p className="text-sm text-muted-foreground">Loading household...</p>
-      }
-    >
-      <HouseholdDetailContent {...params} />
-    </Suspense>
   );
 }

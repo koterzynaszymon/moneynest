@@ -29,7 +29,7 @@ export function ModuleCard({
   children,
 }: ModuleCardProps) {
   return (
-    <Card className="h-full">
+    <Card className="h-full flex flex-col justify-between">
       <CardHeader>
         <div className="flex items-center gap-3">
           {Icon ? (

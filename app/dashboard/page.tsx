@@ -3,6 +3,7 @@ import { getUserHouseholds } from "@/lib/households/queries";
 import CreateHouseholdModal from "@/components/dashboard/create-household-modal";
 import { HouseholdCard } from "@/components/dashboard/household-card";
 import { Home } from "lucide-react";
+import { HouseholdCardSkeleton } from "@/components/skeletons/household-card-skeleton";
 
 async function HouseholdsSection() {
   const households = await getUserHouseholds();
@@ -59,7 +60,13 @@ export default async function ProtectedPage() {
         </p>
       </div>
       <Suspense
-        fallback={<p className="text-muted-foreground">Loading…</p>}
+        fallback={
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <HouseholdCardSkeleton />
+            <HouseholdCardSkeleton />
+            <HouseholdCardSkeleton />
+          </div>
+        }
       >
         <HouseholdsSection />
       </Suspense>
