@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 type ModuleCardProps = {
   title: string;
@@ -16,9 +17,17 @@ type ModuleCardProps = {
   icon?: LucideIcon;
   footerButtonText?: string;
   footerButtonLink?: string;
+  children?: ReactNode;
 };
 
-export function ModuleCard({ title, description, icon: Icon, footerButtonText, footerButtonLink }: ModuleCardProps) {
+export function ModuleCard({
+  title,
+  description,
+  icon: Icon,
+  footerButtonText,
+  footerButtonLink,
+  children,
+}: ModuleCardProps) {
   return (
     <Card className="h-full">
       <CardHeader>
@@ -33,9 +42,11 @@ export function ModuleCard({ title, description, icon: Icon, footerButtonText, f
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="rounded-lg border border-dashed px-4 py-6 text-sm text-muted-foreground">
-          Placeholder for the module content.
-        </div>
+        {children ?? (
+          <div className="rounded-lg border border-dashed px-4 py-6 text-sm text-muted-foreground">
+            Placeholder for the module content.
+          </div>
+        )}
       </CardContent>
       {footerButtonText && (
         <CardFooter className="flex justify-end">
