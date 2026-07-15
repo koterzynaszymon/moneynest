@@ -65,7 +65,7 @@ export default function CreateHouseholdModal() {
               Create a new household to start tracking your finances.
             </DialogDescription>
           </DialogHeader>
-          <FieldGroup>
+          <FieldGroup className="mt-4 gap-4">
             <Field>
               <Label htmlFor="name-1">Household Name</Label>
               <Input
