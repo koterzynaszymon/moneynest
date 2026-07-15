@@ -3,5 +3,5 @@ export type ErrorResponse = {
     message: string;
 } | {
     success: true;
-    data: undefined;
+    data: unknown;
 }

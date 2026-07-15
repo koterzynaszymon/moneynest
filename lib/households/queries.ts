@@ -81,7 +81,7 @@ export async function isUserInHousehold(householdId: string, userId: string){
     .eq("household_id", householdId)
     .eq("member_id", userId)
     .maybeSingle();
-  if (error) throw error;
+  if (error) return false;
   return data !== null;
 }
 
