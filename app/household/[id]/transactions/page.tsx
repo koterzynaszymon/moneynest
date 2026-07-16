@@ -10,18 +10,39 @@ export default async function TransactionsPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{
+    page?: string;
+    type?: string;
+    sort?: string;
+    order?: string;
+  }>;
 }) {
   const { id } = await params;
-  const { page: pageParam } = await searchParams;
+  const {
+    page: pageParam,
+    type: typeParam,
+    sort: sortParam,
+    order: orderParam,
+  } = await searchParams;
   const parsedPage = Number(pageParam ?? 1);
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? Math.floor(parsedPage) : 1;
+  const type =
+    typeParam === "expense" || typeParam === "income" ? typeParam : "all";
+  const sort = sortParam === "amount" ? sortParam : "date";
+  const order = orderParam === "asc" ? orderParam : "desc";
   const household = await getHouseholdById(id);
   if (!household) {
     notFound();
   }
   const categories = await getCategories(id);
-  const { transactions, totalPages } = await getTransactions(id, page);
+  const { transactions, totalPages } = await getTransactions(
+    id,
+    page,
+    10,
+    type,
+    sort,
+    order,
+  );
   return (
     <div className="space-y-8">
       <TransactionsHeader householdId={id} categories={categories} />
