@@ -1,34 +1,27 @@
 "use server";
-import { getCategoryById } from "../categories/queries";
-import { isUserInHousehold } from "../households/queries";
 import { createClient } from "../supabase/server";
-import { ErrorResponse } from "../types/errors";
+import { Response } from "../types/errors";
+import {
+    requireAccessibleTransaction,
+    requireCategoryInHousehold,
+    requireHouseholdMember,
+    requireUserId,
+    validateTransactionInput,
+} from "./guards";
 
-export async function addTransaction(householdId: string, categoryId: string, amount: number, description: string, transactionDate: string): Promise<ErrorResponse> {
+export async function addTransaction(householdId: string, categoryId: string, amount: number, description: string, transactionDate: string): Promise<Response> {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-        return { success: false, message: "User not found" } as ErrorResponse;
-    }
+    const user = await requireUserId();
+    if (!user.success) return user;
 
-    if(!Number.isFinite(amount) || amount <= 0) {
-        return { success: false, message: "Amount must be a number greater than 0" } as ErrorResponse;
-    }
-
-    const today = new Date().toISOString().slice(0, 10);
-    if(!transactionDate || transactionDate > today) {
-        return { success: false, message: "Transaction date must be in the past or today" } as ErrorResponse;
-    }
+    const input = validateTransactionInput(amount, transactionDate);
+    if (!input.success) return input;
     
-    const category = await getCategoryById(categoryId);
-    if (!category || category.household_id !== householdId) {
-        return { success: false, message: "Category not found or you don't have access to it" } as ErrorResponse;
-    }
+    const category = await requireCategoryInHousehold(categoryId, householdId);
+    if (!category.success) return category;
 
-    const isUserInHouseholdResult = await isUserInHousehold(householdId, user.id);
-    if (!isUserInHouseholdResult) {
-        return { success: false, message: "You don't have access to this household" } as ErrorResponse;
-    };
+    const membership = await requireHouseholdMember(householdId, user.data);
+    if (!membership.success) return membership;
 
 
     const {data, error} = await supabase.from("transactions").insert({
@@ -36,11 +29,55 @@ export async function addTransaction(householdId: string, categoryId: string, am
         category_id: categoryId,
         amount: amount,
         description: description,
-        created_by: user.id,
+        created_by: user.data,
         transaction_date: transactionDate,
     }).select().single();
     if (error) {
-        return { success: false, message: error.message } as ErrorResponse;
+        return { success: false, message: error.message } as Response;
     }
-    return { success: true, data: data } as ErrorResponse;
+    return { success: true, data: data } as Response;
+}
+
+export async function updateTransaction(transactionId: string, categoryId: string, amount: number, description: string, transactionDate: string): Promise<Response> {
+    const supabase = await createClient();
+    const user = await requireUserId();
+    if (!user.success) return user;
+
+    const input = validateTransactionInput(amount, transactionDate);
+    if (!input.success) return input;
+
+    const transaction = await requireAccessibleTransaction(transactionId, user.data);
+    if (!transaction.success) return transaction;
+
+    const category = await requireCategoryInHousehold(categoryId, transaction.data.household_id);
+    if (!category.success) return category;
+
+    const {data, error} = await supabase.from("transactions").update({
+        category_id: categoryId,
+        amount: amount,
+        description: description,
+        transaction_date: transactionDate,
+        updated_at: new Date().toISOString(),
+    }).eq("id", transactionId).select().single();
+    if (error) {
+        return { success: false, message: error.message } as Response;
+    }
+
+    return { success: true, data: data } as Response;
+}
+
+export async function deleteTransaction(transactionId: string): Promise<Response> {
+    const supabase = await createClient();
+    const user = await requireUserId();
+    if (!user.success) return user;
+
+    const transaction = await requireAccessibleTransaction(transactionId, user.data);
+    if (!transaction.success) return transaction;
+
+    const {error} = await supabase.from("transactions").delete().eq("id", transactionId);
+    if (error) {
+        return { success: false, message: error.message } as Response;
+    }
+    
+    return { success: true, data: transactionId } as Response;
 }
