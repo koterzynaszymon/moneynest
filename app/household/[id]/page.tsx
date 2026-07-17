@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { FolderTree, Receipt } from "lucide-react";
+import { FolderTree, PiggyBank, Receipt } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { HouseholdHeader } from "@/components/households/household-header";
@@ -46,13 +46,16 @@ export default async function HouseholdDetailPage({
     categories.length - previewCategories.length,
     0,
   );
+  const expenseCategoryCount = categories.filter(
+    (category) => category.type === "expense",
+  ).length;
 
   return (
     <div className="space-y-6">
       <HouseholdHeader household={household} members={members} />
 
       <section className="grid gap-6 lg:grid-cols-1">
-        <div className="grid gap-6 md:grid-cols-2 min-w-0">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-2 min-w-0">
           <ModuleCard
             icon={FolderTree}
             title="Categories"
@@ -94,7 +97,9 @@ export default async function HouseholdDetailPage({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Date</TableHead>
-                    <TableHead className="hidden lg:block">Description</TableHead>
+                    <TableHead className="hidden lg:block">
+                      Description
+                    </TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Amount</TableHead>
                   </TableRow>
@@ -136,6 +141,35 @@ export default async function HouseholdDetailPage({
               <div className="rounded-lg border border-dashed px-4 py-6 text-sm text-muted-foreground">
                 No transactions yet. Create your first one to track activity
                 across the household.
+              </div>
+            )}
+          </ModuleCard>
+          <ModuleCard
+            icon={PiggyBank}
+            title="Budgets"
+            description="Plan monthly spending limits for the household and expense categories."
+            footerButtonText="Manage budgets"
+            footerButtonLink={`/household/${id}/budgets`}
+          >
+            {expenseCategoryCount > 0 ? (
+              <div className="space-y-3">
+                <div className="rounded-lg border bg-muted/30 px-4 py-5">
+                  <p className="text-sm text-muted-foreground">
+                    Budget setup is ready for
+                  </p>
+                  <p className="mt-1 font-display text-2xl font-bold">
+                    {expenseCategoryCount} expense{" "}
+                    {expenseCategoryCount === 1 ? "category" : "categories"}
+                  </p>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Start with a total monthly budget, then add category limits.
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed px-4 py-6 text-sm text-muted-foreground">
+                Create expense categories first, then use budgets to set monthly
+                limits.
               </div>
             )}
           </ModuleCard>
