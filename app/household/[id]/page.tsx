@@ -10,6 +10,15 @@ import {
   getHouseholdById,
   getHouseholdMembers,
 } from "@/lib/households/queries";
+import { getTransactions } from "@/lib/transactions/queries";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 type HouseholdDetailPageProps = {
   params: Promise<{
@@ -21,10 +30,11 @@ export default async function HouseholdDetailPage({
   params,
 }: HouseholdDetailPageProps) {
   const { id } = await params;
-  const [household, members, categories] = await Promise.all([
+  const [household, members, categories, recentTransactions] = await Promise.all([
     getHouseholdById(id),
     getHouseholdMembers(id),
     getCategories(id),
+    getTransactions(id, 1, 3, "all", "date", "desc"),
   ]);
 
   if (!household) {
@@ -42,7 +52,7 @@ export default async function HouseholdDetailPage({
       <HouseholdHeader household={household} members={members} />
 
       <section className="grid gap-6 lg:grid-cols-1">
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2 min-w-0">
           <ModuleCard
             icon={FolderTree}
             title="Categories"
@@ -75,11 +85,59 @@ export default async function HouseholdDetailPage({
           <ModuleCard
             icon={Receipt}
             title="Transactions"
-            description="Track activity across the household."
+            description="Track activity across the household. Those are the most recent transactions."
             footerButtonText="View transactions"
             footerButtonLink={`/household/${id}/transactions`}
           >
-            <p>Transactions are coming next.</p>
+            {recentTransactions.transactions.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="hidden lg:block">Description</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Amount</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recentTransactions.transactions.map((transaction) => {
+                    const category = categories.find(
+                      (c) => c.id === transaction.category_id,
+                    );
+                    const isIncome = category?.type === "income";
+                    return (
+                      <TableRow key={transaction.id}>
+                        <TableCell className="text-muted-foreground">
+                          {new Date(
+                            transaction.transaction_date,
+                          ).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="max-w-[140px] truncate hidden lg:block">
+                          {transaction.description || "No description"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={isIncome ? "income" : "expense"}>
+                            {category?.name ?? "Uncategorized"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell
+                          className={`text-right font-bold ${
+                            isIncome ? "text-green-500" : "text-red-500"
+                          }`}
+                        >
+                          {transaction.amount}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="rounded-lg border border-dashed px-4 py-6 text-sm text-muted-foreground">
+                No transactions yet. Create your first one to track activity
+                across the household.
+              </div>
+            )}
           </ModuleCard>
         </div>
       </section>
