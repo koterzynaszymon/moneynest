@@ -32,9 +32,20 @@ export async function getTransactions(
   if (type !== "all") {
     query = query.eq("categories.type", type);
   }
-  const { data, count, error } = await query
-    .order(orderBy, { ascending })
-    .range(from, to);
+
+  const orderedQuery =
+    sort === "date"
+      ? query
+          .order(orderBy, { ascending })
+          .order("created_at", { ascending })
+          .order("id", { ascending })
+      : query
+          .order(orderBy, { ascending })
+          .order("transaction_date", { ascending: false })
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: false });
+
+  const { data, count, error } = await orderedQuery.range(from, to);
   if (error) {
     throw new Error(error.message);
   }
