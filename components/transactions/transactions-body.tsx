@@ -139,6 +139,7 @@ export function TransactionsBody({
                     sort: "date",
                     order: getNextSortOrder("date", filterSort, filterOrder),
                   })}
+                  replace
                 >
                   Date
                   <SortIcon
@@ -159,6 +160,7 @@ export function TransactionsBody({
                     sort: "amount",
                     order: getNextSortOrder("amount", filterSort, filterOrder),
                   })}
+                  replace
                 >
                   Amount
                   <SortIcon

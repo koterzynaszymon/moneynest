@@ -30,7 +30,7 @@ export function HouseholdHeader({
   return (
     <Card>
       <CardContent className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-3">
+        <div className="space-y-3 ">
           <Badge variant="secondary">Household</Badge>
           <div className="space-y-2">
             <h1 className="font-display text-3xl font-semibold tracking-tight">
@@ -47,7 +47,7 @@ export function HouseholdHeader({
           </div>
         </div>
 
-        <div className="flex min-w-0 items-center gap-3 rounded-lg border bg-muted/30 px-4 py-3">
+        <div className="flex min-w-0 w-full flex-col items-start gap-3 rounded-lg border bg-muted/30 px-4 py-3 sm:w-auto sm:flex-row sm:items-center sm:justify-around">
           <div className="flex -space-x-2">
             {hasPreviewMembers ? (
               previewMembers.map((member) => (
@@ -65,16 +65,19 @@ export function HouseholdHeader({
               </div>
             )}
           </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 font-medium justify-between mb-0.5">
+          <div className="min-w-0 w-full sm:w-auto">
+            <div className="mb-0.5 flex items-center justify-between gap-2 font-medium">
               <div className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
+                <Users className="h-4 w-4 shrink-0" />
                 <span>
                   {household.memberCount}{" "}
                   {household.memberCount === 1 ? "member" : "members"}
                 </span>
               </div>
-              <EditHouseholdMembersModal members={members} householdId={household.id} />
+              <EditHouseholdMembersModal
+                members={members}
+                householdId={household.id}
+              />
             </div>
             <p className="text-sm text-muted-foreground">
               Manage who belongs in this household.
