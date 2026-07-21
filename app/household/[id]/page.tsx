@@ -5,12 +5,13 @@ import { FolderTree, PiggyBank, Receipt } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { HouseholdHeader } from "@/components/households/household-header";
 import { ModuleCard } from "@/components/households/module-card";
+import { getBudget } from "@/lib/budgets/queries";
 import { getCategories } from "@/lib/categories/queries";
 import {
   getHouseholdById,
   getHouseholdMembers,
 } from "@/lib/households/queries";
-import { getTransactions } from "@/lib/transactions/queries";
+import { getMonthlyExpenseTotal, getTransactions } from "@/lib/transactions/queries";
 import {
   Table,
   TableBody,
@@ -19,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ProgressBar } from "@/components/ui/progress-bar";
 
 type HouseholdDetailPageProps = {
   params: Promise<{
@@ -30,12 +32,18 @@ export default async function HouseholdDetailPage({
   params,
 }: HouseholdDetailPageProps) {
   const { id } = await params;
-  const [household, members, categories, recentTransactions] = await Promise.all([
-    getHouseholdById(id),
-    getHouseholdMembers(id),
-    getCategories(id),
-    getTransactions(id, 1, 3, "all", "date", "desc"),
-  ]);
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  const [household, members, categories, recentTransactions, budgetResult, spentThisMonth] =
+    await Promise.all([
+      getHouseholdById(id),
+      getHouseholdMembers(id),
+      getCategories(id),
+      getTransactions(id, 1, 3, "all", "date", "desc"),
+      getBudget(id, currentYear, currentMonth),
+      getMonthlyExpenseTotal(id, currentYear, currentMonth),
+    ]);
 
   if (!household) {
     notFound();
@@ -49,6 +57,7 @@ export default async function HouseholdDetailPage({
   const expenseCategoryCount = categories.filter(
     (category) => category.type === "expense",
   ).length;
+  const currentMonthBudget = budgetResult.success ? budgetResult.budget : null;
 
   return (
     <div className="space-y-6">
@@ -154,13 +163,20 @@ export default async function HouseholdDetailPage({
             {expenseCategoryCount > 0 ? (
               <div className="space-y-3">
                 <div className="rounded-lg border bg-muted/30 px-4 py-5">
-                  <p className="text-sm text-muted-foreground">
-                    Budget setup is ready for
-                  </p>
-                  <p className="mt-1 font-display text-2xl font-bold">
-                    {expenseCategoryCount} expense{" "}
-                    {expenseCategoryCount === 1 ? "category" : "categories"}
-                  </p>
+                  {currentMonthBudget ? (
+                    <ProgressBar
+                      currentValue={spentThisMonth}
+                      targetValue={currentMonthBudget.total_amount}
+                      currency={household.currency}
+                      title="Left this month"
+                      currentLabel="Used"
+                      targetLabel="Limit"
+                    />
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No budget set for this month yet.
+                    </p>
+                  )}
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Start with a total monthly budget, then add category limits.

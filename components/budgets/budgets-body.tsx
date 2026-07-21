@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, PiggyBank, Tags } from "lucide-react";
+import { CalendarDays, Pencil, PiggyBank, Tags } from "lucide-react";
 import { Amount } from "@/components/ui/amount";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,24 @@ export function BudgetsBody({
     useState<Budget | null>(currentMonthBudget);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isEditingCurrentMonthBudget, setIsEditingCurrentMonthBudget] = useState<boolean>(false);
+  function handleEditCurrentMonthBudget() {
+    if (!visibleCurrentMonthBudget) {
+      return;
+    }
+
+    setMonth(
+      `${visibleCurrentMonthBudget.year}-${String(
+        visibleCurrentMonthBudget.month,
+      ).padStart(2, "0")}`,
+    );
+    setTotalAmount(visibleCurrentMonthBudget.total_amount);
+    setIsEditingCurrentMonthBudget(true);
+    window.setTimeout(() => setIsEditingCurrentMonthBudget(false), 200);
+    window.setTimeout(() => setIsEditingCurrentMonthBudget(true), 500);
+    window.setTimeout(() => setIsEditingCurrentMonthBudget(false), 700);
+  }
+
   async function handleSubmitMonthlyBudget(
     event: React.FormEvent<HTMLFormElement>,
   ) {
@@ -121,7 +139,20 @@ export function BudgetsBody({
                 />
               </CardTitle>
             </div>
-            <PiggyBank className="h-5 w-5 text-primary" />
+            <div className="flex items-center gap-1">
+              {visibleCurrentMonthBudget ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Edit current month budget"
+                  onClick={handleEditCurrentMonthBudget}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              ) : null}
+              <PiggyBank className="h-5 w-5 text-primary" />
+            </div>
           </CardHeader>
         </Card>
 
@@ -138,7 +169,13 @@ export function BudgetsBody({
         </Card>
       </section>
 
-      <Card>
+      <Card
+        className={
+          isEditingCurrentMonthBudget
+            ? "border-red-500 ring-2 ring-red-500/30 transition-all"
+            : "transition-all"
+        }
+      >
         <CardHeader>
           <CardTitle>Monthly budget setup</CardTitle>
           <CardDescription>
