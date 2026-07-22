@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { FolderTree, PiggyBank, Receipt } from "lucide-react";
+import { ChartArea, ChartColumn, FolderTree, PiggyBank, Receipt } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { HouseholdHeader } from "@/components/households/household-header";
@@ -188,6 +188,17 @@ export default async function HouseholdDetailPage({
                 limits.
               </div>
             )}
+          </ModuleCard>
+          <ModuleCard
+            icon={ChartColumn}
+            title="Insights"
+            description="View insights and reports about the household's spending and income."
+            footerButtonText="View insights"
+            footerButtonLink={`/household/${id}/insights`}
+          >
+            <p className="text-sm text-muted-foreground">
+              No insights yet. Create your first transaction to see insights.
+            </p>
           </ModuleCard>
         </div>
       </section>
