@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 
 import { BudgetsBody } from "@/components/budgets/budgets-body";
 import { BudgetsHeader } from "@/components/budgets/budgets-header";
-import { getBudget } from "@/lib/budgets/queries";
+import { getBudget, getCategoryBudgets } from "@/lib/budgets/queries";
 import { getCategories } from "@/lib/categories/queries";
 import { getHouseholdById } from "@/lib/households/queries";
 
@@ -28,6 +28,13 @@ export default async function BudgetsPage({
   const expenseCategories = categories.filter(
     (category) => category.type === "expense",
   );
+  const currentMonthBudget = currentBudgetResult.success
+    ? currentBudgetResult.budget
+    : null;
+  const categoryBudgetsResult =
+    currentMonthBudget !== null
+      ? await getCategoryBudgets(id, currentMonthBudget.id)
+      : { success: true as const, categoryBudgets: [] };
 
   return (
     <div className="space-y-8">
@@ -36,8 +43,11 @@ export default async function BudgetsPage({
         householdId={id}
         currency={household.currency}
         expenseCategories={expenseCategories}
-        currentMonthBudget={
-          currentBudgetResult.success ? currentBudgetResult.budget : null
+        currentMonthBudget={currentMonthBudget}
+        initialCategoryBudgets={
+          categoryBudgetsResult.success
+            ? categoryBudgetsResult.categoryBudgets
+            : []
         }
       />
     </div>

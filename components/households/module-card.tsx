@@ -50,7 +50,7 @@ export function ModuleCard({
       </CardContent>
       {footerButtonText && (
         <CardFooter className="flex justify-end">
-          <Button asChild>
+          <Button asChild className="hover:scale-105 transition-all duration-300 will-change-transform">
             <Link href={footerButtonLink ?? ""}>{footerButtonText}</Link>
           </Button>
         </CardFooter>
