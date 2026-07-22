@@ -15,15 +15,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Category } from "@/lib/types/categories";
 import { useState } from "react";
-import { createBudget } from "@/lib/budgets/actions";
+import { saveBudget, setCategoryLimit } from "@/lib/budgets/actions";
 import { toast } from "sonner";
-import type { Budget } from "@/lib/types/budgets";
+import type { Budget, CategoryBudget } from "@/lib/types/budgets";
 
 type BudgetsBodyProps = {
   householdId: string;
   currency: string;
   expenseCategories: Category[];
   currentMonthBudget: Budget | null;
+  initialCategoryBudgets: CategoryBudget[];
 };
 
 export function BudgetsBody({
@@ -31,6 +32,7 @@ export function BudgetsBody({
   currency,
   expenseCategories,
   currentMonthBudget,
+  initialCategoryBudgets,
 }: BudgetsBodyProps) {
   const currentMonth = new Intl.DateTimeFormat("en", {
     month: "long",
@@ -47,9 +49,22 @@ export function BudgetsBody({
   const [totalAmount, setTotalAmount] = useState<number>(0);
   const [visibleCurrentMonthBudget, setVisibleCurrentMonthBudget] =
     useState<Budget | null>(currentMonthBudget);
+  const [categoryBudgets, setCategoryBudgets] = useState<CategoryBudget[]>(
+    initialCategoryBudgets,
+  );
+  const [limitDrafts, setLimitDrafts] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      initialCategoryBudgets.map((categoryBudget) => [
+        categoryBudget.category_id,
+        String(categoryBudget.amount),
+      ]),
+    ),
+  );
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [savingCategoryId, setSavingCategoryId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isEditingCurrentMonthBudget, setIsEditingCurrentMonthBudget] = useState<boolean>(false);
+  const [isEditingCurrentMonthBudget, setIsEditingCurrentMonthBudget] =
+    useState<boolean>(false);
   function handleEditCurrentMonthBudget() {
     if (!visibleCurrentMonthBudget) {
       return;
@@ -86,20 +101,23 @@ export function BudgetsBody({
         return;
       }
       setIsLoading(true);
-      const result = await createBudget(
+      const result = await saveBudget(
         householdId,
         year,
         monthNumber,
         totalAmount,
       );
       if (result.success) {
-        toast.success("Budget created successfully");
-        if (
-          result.budget.year === now.getFullYear() &&
-          result.budget.month === now.getMonth() + 1
-        ) {
-          setVisibleCurrentMonthBudget(result.budget);
+        toast.success(
+          result.operation === "created"
+            ? "Budget created successfully"
+            : "Budget updated successfully",
+        );
+        if (visibleCurrentMonthBudget?.id !== result.budget.id) {
+          setCategoryBudgets([]);
+          setLimitDrafts({});
         }
+        setVisibleCurrentMonthBudget(result.budget);
         setTotalAmount(0);
         setMonth(
           `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`,
@@ -108,9 +126,55 @@ export function BudgetsBody({
         setError(result.message);
       }
     } catch {
-      setError("Failed to create budget");
+      setError("Failed to save budget");
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleSetCategoryLimit(categoryId: string) {
+    if (!visibleCurrentMonthBudget) {
+      toast.error("Create a monthly budget first");
+      return;
+    }
+
+    const amount = Number(limitDrafts[categoryId]);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast.error("Enter a limit greater than 0");
+      return;
+    }
+
+    try {
+      setSavingCategoryId(categoryId);
+      const result = await setCategoryLimit(
+        householdId,
+        visibleCurrentMonthBudget.id,
+        categoryId,
+        amount,
+      );
+
+      if (result.success) {
+        setCategoryBudgets((previous) => {
+          const existingIndex = previous.findIndex(
+            (categoryBudget) => categoryBudget.category_id === categoryId,
+          );
+
+          if (existingIndex >= 0) {
+            const next = [...previous];
+            next[existingIndex] = result.categoryBudget;
+            return next;
+          }
+
+          return [...previous, result.categoryBudget];
+        });
+        toast.success("Category limit saved");
+      } else {
+        toast.error(result.message);
+      }
+    } catch {
+      toast.error("Failed to save category limit");
+    } finally {
+      setSavingCategoryId(null);
     }
   }
 
@@ -221,35 +285,78 @@ export function BudgetsBody({
         <CardHeader>
           <CardTitle>Category limits</CardTitle>
           <CardDescription>
-            Set optional monthly limits for expense categories.
+            Set optional monthly limits for expense categories. They do not need
+            to exactly match the total budget.
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {!visibleCurrentMonthBudget ? (
+            <div className="mb-4 rounded-lg border border-dashed px-4 py-3 text-sm text-muted-foreground">
+              Create a monthly budget for this month before setting category
+              limits.
+            </div>
+          ) : null}
           {expenseCategories.length > 0 ? (
             <div className="space-y-3">
-              {expenseCategories.map((category) => (
-                <div
-                  key={category.id}
-                  className="grid gap-3 rounded-lg border p-4 md:grid-cols-[1fr_180px_auto] md:items-center"
-                >
-                  <div className="space-y-1">
-                    <Badge variant="expense">{category.name}</Badge>
-                    <p className="text-sm text-muted-foreground">
-                      No limit saved yet.
-                    </p>
+              {expenseCategories.map((category) => {
+                const savedLimit = categoryBudgets.find(
+                  (categoryBudget) =>
+                    categoryBudget.category_id === category.id,
+                );
+
+                return (
+                  <div
+                    key={category.id}
+                    className="grid gap-3 rounded-lg border p-4 md:grid-cols-[1fr_180px_auto] md:items-center"
+                  >
+                    <div className="space-y-1">
+                      <Badge variant="expense">{category.name}</Badge>
+                      <p className="text-sm text-muted-foreground">
+                        {savedLimit ? (
+                          <>
+                            Saved limit:{" "}
+                            <Amount
+                              value={savedLimit.amount}
+                              currency={currency}
+                              tone="neutral"
+                            />
+                          </>
+                        ) : (
+                          "No limit saved yet."
+                        )}
+                      </p>
+                    </div>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="Limit amount"
+                      aria-label={`${category.name} budget limit`}
+                      value={limitDrafts[category.id] ?? ""}
+                      disabled={!visibleCurrentMonthBudget}
+                      onChange={(event) =>
+                        setLimitDrafts((previous) => ({
+                          ...previous,
+                          [category.id]: event.target.value,
+                        }))
+                      }
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={
+                        !visibleCurrentMonthBudget ||
+                        savingCategoryId === category.id
+                      }
+                      onClick={() => handleSetCategoryLimit(category.id)}
+                    >
+                      {savingCategoryId === category.id
+                        ? "Saving..."
+                        : "Set limit"}
+                    </Button>
                   </div>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="Limit amount"
-                    aria-label={`${category.name} budget limit`}
-                  />
-                  <Button type="button" variant="outline">
-                    Set limit
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
