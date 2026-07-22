@@ -97,3 +97,43 @@ export async function getMonthlyExpenseTotal(
 
   return (data ?? []).reduce((sum, row) => sum + Number(row.amount), 0);
 }
+
+export type WeeklyExpenseTotals = {
+  labels: string[];
+  values: number[];
+};
+export async function getWeeklyExpenseTotals(
+  householdId: string,
+  year: number,
+  month: number,
+): Promise<WeeklyExpenseTotals> {
+  const supabase = await createClient();
+  const lastDay = new Date(year, month, 0).getDate();
+  const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
+  const endDate = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+  const { data, error } = await supabase
+    .from("transactions")
+    .select("amount, transaction_date, categories!inner(type)")
+    .eq("household_id", householdId)
+    .eq("categories.type", "expense")
+    .gte("transaction_date", startDate)
+    .lte("transaction_date", endDate);
+  if (error) {
+    throw new Error(error.message);
+  }
+  const values = [0, 0, 0, 0];
+  for (const row of data ?? []) {
+    const day = Number(String(row.transaction_date).slice(8, 10));
+    const weekIndex = day <= 7 ? 0 : day <= 14 ? 1 : day <= 21 ? 2 : 3;
+    values[weekIndex] += Number(row.amount);
+  }
+  return {
+    labels: [
+      "1–7",
+      "8–14",
+      "15–21",
+      `22–${lastDay}`,
+    ],
+    values,
+  };
+}
