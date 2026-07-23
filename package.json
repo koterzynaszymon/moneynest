@@ -3,6 +3,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "db:types": "npx supabase gen types typescript --local | node -e \"let data = ''; process.stdin.on('data', chunk => data += chunk); process.stdin.on('end', () => require('fs').writeFileSync('lib/types/database.ts', data));\"",
     "start": "next start",
     "lint": "eslint ."
   },

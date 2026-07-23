@@ -1,11 +1,6 @@
-export type Household = {
-  id: string;
-  name: string;
-  owner_id: string;
-  currency: string;
-  created_at: string;
-  updated_at: string;
-};
+import type { Database } from "./database";
+
+export type Household = Database["public"]["Tables"]["households"]["Row"];
 
 export type HouseholdWithMemberCount = Household & {
   memberCount: number;

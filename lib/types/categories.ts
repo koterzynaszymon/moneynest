@@ -1,11 +1,6 @@
-export type Category = {
-    id: string;
-    household_id: string;
-    name: string;
-    type: "income" | "expense";
-    created_at: string;
-    updated_at: string;
-}
+import type { Database } from "./database";
+
+export type Category = Database["public"]["Tables"]["categories"]["Row"];
 
 export type DeleteCategoryResult =
   | { success: true }
