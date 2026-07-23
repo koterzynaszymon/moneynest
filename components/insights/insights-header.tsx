@@ -5,7 +5,7 @@ export function InsightsHeader() {
           Insights
         </h1>
         <p className="text-sm text-muted-foreground">
-          View insights and reports about the household's spending and income.
+          View insights and reports about the household&apos;s spending and income.
         </p>
       </div>
     );

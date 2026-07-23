@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { ChartArea, ChartColumn, FolderTree, PiggyBank, Receipt } from "lucide-react";
+import { ChartColumn, FolderTree, PiggyBank, Receipt } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { HouseholdHeader } from "@/components/households/household-header";
