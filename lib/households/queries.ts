@@ -1,5 +1,3 @@
-"use server";
-
 import { HouseholdWithMemberCount } from "../types/household";
 import { createClient } from "../supabase/server";
 import { getUserId } from "../users/queries";

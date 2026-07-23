@@ -1,5 +1,3 @@
-"use server";
-
 import { createClient } from "../supabase/server";
 
 export async function getUserId() : Promise<string> {
@@ -9,7 +7,7 @@ export async function getUserId() : Promise<string> {
     return user.id;
 }
 
-export async function getUserIdByEmail(email: string) : Promise<string> {
+export async function getUserIdByEmail(email: string) : Promise<string | null> {
     const supabase = await createClient();
     const { data, error } = await supabase.from("profiles").select("id").eq("email", email).maybeSingle();
     if (error) throw new Error("User not found");

@@ -1,5 +1,3 @@
-"use server";
-
 import { createClient } from "../supabase/server";
 import { Category } from "../types/categories";
 
@@ -12,7 +10,7 @@ export async function getCategories(householdId: string): Promise<Category[]> {
         throw new Error(error.message);
     }
 
-    return (data ?? []) as Category[];
+    return data ?? [];
 }
 
 export async function isCategoryNameUnique(householdId: string, name: string): Promise<boolean> {
@@ -35,5 +33,5 @@ export async function getCategoryById(id: string): Promise<Category | null> {
         return null;
     }
 
-    return data as Category | null;
+    return data ?? null;
 }
