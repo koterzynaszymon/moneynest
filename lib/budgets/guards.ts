@@ -1,26 +1,12 @@
+import type { GuardResult } from "../auth/guards";
+import { requireHouseholdMember, requireUserId } from "../auth/guards";
 import { getCategoryById } from "../categories/queries";
-import { isUserInHousehold } from "../households/queries";
 import { createClient } from "../supabase/server";
 import type { Budget } from "../types/budgets";
 import { hasBudgetForMonth } from "./queries";
 
-type GuardResult<T> =
-  | { success: true; data: T }
-  | { success: false; message: string };
-
-export async function requireUserId(): Promise<GuardResult<string>> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return { success: false, message: "User not found" };
-  }
-
-  return { success: true, data: user.id };
-}
+export { requireHouseholdMember, requireUserId };
+export type { GuardResult };
 
 export function validateBudgetInput(
   year: number,
@@ -39,22 +25,6 @@ export function validateBudgetInput(
     return {
       success: false,
       message: "Total amount must be a valid number and greater than 0",
-    };
-  }
-
-  return { success: true, data: null };
-}
-
-export async function requireHouseholdMember(
-  householdId: string,
-  userId: string,
-): Promise<GuardResult<null>> {
-  const isMember = await isUserInHousehold(householdId, userId);
-
-  if (!isMember) {
-    return {
-      success: false,
-      message: "User is not a member of the household",
     };
   }
 

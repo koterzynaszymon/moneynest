@@ -1,35 +1,17 @@
+import type { GuardResult } from "../auth/guards";
+import { requireHouseholdMember, requireUserId } from "../auth/guards";
 import { getCategoryById } from "../categories/queries";
-import { isUserInHousehold } from "../households/queries";
-import { createClient } from "../supabase/server";
 import type { Transactions } from "../types/transactions";
+import { TRANSACTION_DESCRIPTION_MAX_LENGTH } from "./constants";
 import { getTransactionById } from "./queries";
 
-type GuardResult<T> =
-  | {
-      success: true;
-      data: T;
-    }
-  | {
-      success: false;
-      message: string;
-    };
-
-export async function requireUserId(): Promise<GuardResult<string>> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { success: false, message: "User not found" };
-  }
-
-  return { success: true, data: user.id };
-}
+export { requireHouseholdMember, requireUserId };
+export type { GuardResult };
 
 export function validateTransactionInput(
   amount: number,
   transactionDate: string,
+  description: string,
 ): GuardResult<null> {
   if (!Number.isFinite(amount) || amount <= 0) {
     return {
@@ -46,19 +28,10 @@ export function validateTransactionInput(
     };
   }
 
-  return { success: true, data: null };
-}
-
-export async function requireHouseholdMember(
-  householdId: string,
-  userId: string,
-): Promise<GuardResult<null>> {
-  const isMember = await isUserInHousehold(householdId, userId);
-
-  if (!isMember) {
+  if (description.length > TRANSACTION_DESCRIPTION_MAX_LENGTH) {
     return {
       success: false,
-      message: "You don't have access to this household",
+      message: `Description must be at most ${TRANSACTION_DESCRIPTION_MAX_LENGTH} characters`,
     };
   }
 
@@ -93,7 +66,10 @@ export async function requireAccessibleTransaction(
     return { success: false, message: "Transaction not found" };
   }
 
-  const membership = await requireHouseholdMember(transaction.household_id, userId);
+  const membership = await requireHouseholdMember(
+    transaction.household_id,
+    userId,
+  );
   if (!membership.success) {
     return membership;
   }
