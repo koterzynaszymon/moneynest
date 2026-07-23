@@ -1,25 +1,51 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
+import { CategorySpendingChart } from "./category-spending-chart";
 import { WeekByWeekSpendingChart } from "./week-by-week-spending-chart";
 
 export function InsightsBody({ householdId }: { householdId: string }) {
-  const [year, setYear] = useState<number>(new Date().getFullYear());
-  const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+
   return (
-  <div className="space-y-6 mt-6">
-    <section className="grid gap-4 md:grid-cols-2">
-      <Card>
-        <CardHeader>
-          <CardTitle>Week by week spending</CardTitle>
-          <CardDescription>
-            View your spending by week.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <WeekByWeekSpendingChart householdId={householdId} year={year} month={month} />
-        </CardContent>
+    <div className="mt-6 space-y-6">
+      <section className="grid gap-4 md:grid-cols-2 grid-cols-1">
+        <Card>
+          <CardHeader>
+            <CardTitle>Week by week spending</CardTitle>
+            <CardDescription>View your spending by week.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <WeekByWeekSpendingChart
+              householdId={householdId}
+              year={year}
+              month={month}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Spending by category</CardTitle>
+            <CardDescription>
+              See which categories take the biggest share.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CategorySpendingChart
+              householdId={householdId}
+              year={year}
+              month={month}
+            />
+          </CardContent>
         </Card>
       </section>
     </div>
