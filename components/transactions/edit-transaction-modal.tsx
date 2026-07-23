@@ -20,6 +20,7 @@ import { Field, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateTransaction } from "@/lib/transactions/actions";
+import { TRANSACTION_DESCRIPTION_MAX_LENGTH } from "@/lib/transactions/constants";
 import type { Category } from "@/lib/types/categories";
 import type { Transactions } from "@/lib/types/transactions";
 
@@ -187,6 +188,7 @@ export default function EditTransactionModal({
                   id={`transaction-description-${transaction.id}`}
                   name="description"
                   placeholder="Weekly groceries, salary, rent..."
+                  maxLength={TRANSACTION_DESCRIPTION_MAX_LENGTH}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />

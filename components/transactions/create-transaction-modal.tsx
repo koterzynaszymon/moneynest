@@ -18,6 +18,7 @@ import { Field, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Category } from "@/lib/types/categories";
+import { TRANSACTION_DESCRIPTION_MAX_LENGTH } from "@/lib/transactions/constants";
 import { addTransaction } from "@/lib/transactions/actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -157,6 +158,7 @@ export default function CreateTransactionModal({
                   id="transaction-description"
                   name="description"
                   placeholder="Weekly groceries, salary, rent..."
+                  maxLength={TRANSACTION_DESCRIPTION_MAX_LENGTH}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />
