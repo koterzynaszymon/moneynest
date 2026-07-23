@@ -9,15 +9,29 @@ import {
 } from "../ui/card";
 import { CategoryIncomeChart } from "./category-income-chart";
 import { CategorySpendingChart } from "./category-spending-chart";
+import { InsightsKpiStrip } from "./insights-kpi-strip";
 import { WeekByWeekSpendingChart } from "./week-by-week-spending-chart";
 
-export function InsightsBody({ householdId }: { householdId: string }) {
+export function InsightsBody({
+  householdId,
+  currency,
+}: {
+  householdId: string;
+  currency: string;
+}) {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
 
   return (
     <div className="mt-6 space-y-6">
+      <InsightsKpiStrip
+        householdId={householdId}
+        currency={currency}
+        year={year}
+        month={month}
+      />
+
       <section className="grid gap-4 md:grid-cols-2 grid-cols-1">
         <Card>
           <CardHeader>

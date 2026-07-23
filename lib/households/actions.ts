@@ -92,7 +92,7 @@ export async function deleteHousehold(householdId: string) {
     .delete()
     .eq("id", householdId);
 
-  if (deleteError) return { success: false, message: deleteError.message };
+  if (deleteError) return { success: false, message: "Failed to delete household. Try again later." };
 
   revalidatePath("/dashboard");
 
@@ -115,7 +115,7 @@ export async function addHouseholdMember(householdId: string, email: string) {
   if (error)
     return {
       success: false,
-      message: error.message,
+      message: "Failed to add user to household. Try again later.",
     };
 
   if (!newUserId)
@@ -169,7 +169,7 @@ export async function removeHouseholdMember(householdId: string, memberId: strin
   if (memberId === ownerId) return { success: false, message: "You cannot remove the owner from the household" };
 
   const { error: deleteError } = await supabase.from("household_members").delete().eq("household_id", householdId).eq("member_id", memberId);
-  if (deleteError) return { success: false, message: deleteError.message };
+  if (deleteError) return { success: false, message: "Failed to remove user from household. Try again later." };
 
 
   revalidatePath(`/household/${householdId}`);

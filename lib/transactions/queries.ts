@@ -50,15 +50,13 @@ export async function getTransactions(
     throw new Error(error.message);
   }
   return {
-    transactions: (data ?? []).map(
-      ({ categories, ...transaction }) => {
-        if (!categories) {
-          return transaction;
-        }
-
+    transactions: (data ?? []).map(({ categories, ...transaction }) => {
+      if (!categories) {
         return transaction;
-      },
-    ) as Transactions[],
+      }
+
+      return transaction;
+    }) as Transactions[],
     totalPages: Math.max(Math.ceil((count ?? 0) / pageSize), 1),
   };
 }
@@ -94,6 +92,32 @@ export async function getMonthlyExpenseTotal(
     .select("amount, categories!inner(type)")
     .eq("household_id", householdId)
     .eq("categories.type", "expense")
+    .gte("transaction_date", startDate)
+    .lte("transaction_date", endDate);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []).reduce((sum, row) => sum + Number(row.amount), 0);
+}
+
+export async function getMonthlyIncomeTotal(
+  householdId: string,
+  year: number,
+  month: number,
+): Promise<number> {
+  const supabase = await createClient();
+
+  const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
+  const lastDay = new Date(year, month, 0).getDate();
+  const endDate = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+
+  const { data, error } = await supabase
+    .from("transactions")
+    .select("amount, categories!inner(type)")
+    .eq("household_id", householdId)
+    .eq("categories.type", "income")
     .gte("transaction_date", startDate)
     .lte("transaction_date", endDate);
 
@@ -145,12 +169,7 @@ export async function getWeeklyExpenseTotals(
     values[weekIndex] += Number(row.amount);
   }
   return {
-    labels: [
-      "1–7",
-      "8–14",
-      "15–21",
-      `22–${lastDay}`,
-    ],
+    labels: ["1–7", "8–14", "15–21", `22–${lastDay}`],
     values,
   };
 }
