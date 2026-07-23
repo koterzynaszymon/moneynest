@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
+import { CategoryIncomeChart } from "./category-income-chart";
 import { CategorySpendingChart } from "./category-spending-chart";
 import { WeekByWeekSpendingChart } from "./week-by-week-spending-chart";
 
@@ -41,6 +42,22 @@ export function InsightsBody({ householdId }: { householdId: string }) {
           </CardHeader>
           <CardContent>
             <CategorySpendingChart
+              householdId={householdId}
+              year={year}
+              month={month}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Income by category</CardTitle>
+            <CardDescription>
+              See which income sources contributed this month.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CategoryIncomeChart
               householdId={householdId}
               year={year}
               month={month}

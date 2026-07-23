@@ -114,6 +114,11 @@ export type CategoryExpenseTotals = {
   values: number[];
 };
 
+export type CategoryIncomeTotals = {
+  labels: string[];
+  values: number[];
+};
+
 export async function getWeeklyExpenseTotals(
   householdId: string,
   year: number,
@@ -165,6 +170,21 @@ type CategoryExpenseRow = {
       }[];
 };
 
+type CategoryIncomeRow = {
+  amount: number | string;
+  categories:
+    | {
+        id: string;
+        name: string;
+        type: "income";
+      }
+    | {
+        id: string;
+        name: string;
+        type: "income";
+      }[];
+};
+
 export async function getCategoryExpenseTotals(
   householdId: string,
   year: number,
@@ -190,6 +210,60 @@ export async function getCategoryExpenseTotals(
   const totalsByCategory = new Map<string, { label: string; value: number }>();
 
   for (const row of (data ?? []) as unknown as CategoryExpenseRow[]) {
+    const category = Array.isArray(row.categories)
+      ? row.categories[0]
+      : row.categories;
+
+    if (!category) {
+      continue;
+    }
+
+    const current = totalsByCategory.get(category.id) ?? {
+      label: category.name,
+      value: 0,
+    };
+
+    totalsByCategory.set(category.id, {
+      label: current.label,
+      value: current.value + Number(row.amount),
+    });
+  }
+
+  const totals = Array.from(totalsByCategory.values()).sort(
+    (a, b) => b.value - a.value,
+  );
+
+  return {
+    labels: totals.map((total) => total.label),
+    values: totals.map((total) => total.value),
+  };
+}
+
+export async function getCategoryIncomeTotals(
+  householdId: string,
+  year: number,
+  month: number,
+): Promise<CategoryIncomeTotals> {
+  const supabase = await createClient();
+  const lastDay = new Date(year, month, 0).getDate();
+  const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
+  const endDate = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+
+  const { data, error } = await supabase
+    .from("transactions")
+    .select("amount, categories!inner(id, name, type)")
+    .eq("household_id", householdId)
+    .eq("categories.type", "income")
+    .gte("transaction_date", startDate)
+    .lte("transaction_date", endDate);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const totalsByCategory = new Map<string, { label: string; value: number }>();
+
+  for (const row of (data ?? []) as unknown as CategoryIncomeRow[]) {
     const category = Array.isArray(row.categories)
       ? row.categories[0]
       : row.categories;
