@@ -12,6 +12,7 @@ import {
   getHouseholdMembers,
 } from "@/lib/households/queries";
 import { getMonthlyExpenseTotal, getTransactions } from "@/lib/transactions/queries";
+import { getUserId } from "@/lib/users/queries";
 import {
   Table,
   TableBody,
@@ -35,7 +36,7 @@ export default async function HouseholdDetailPage({
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
-  const [household, members, categories, recentTransactions, budgetResult, spentThisMonth] =
+  const [household, members, categories, recentTransactions, budgetResult, spentThisMonth, userId] =
     await Promise.all([
       getHouseholdById(id),
       getHouseholdMembers(id),
@@ -43,11 +44,14 @@ export default async function HouseholdDetailPage({
       getTransactions(id, 1, 3, "all", "date", "desc"),
       getBudget(id, currentYear, currentMonth),
       getMonthlyExpenseTotal(id, currentYear, currentMonth),
+      getUserId(),
     ]);
 
   if (!household) {
     notFound();
   }
+
+  const isOwner = household.owner_id === userId;
 
   const previewCategories = categories.slice(0, 8);
   const hiddenCategoryCount = Math.max(
@@ -61,7 +65,7 @@ export default async function HouseholdDetailPage({
 
   return (
     <div className="space-y-6">
-      <HouseholdHeader household={household} members={members} />
+      <HouseholdHeader household={household} members={members} isOwner={isOwner} />
 
       <section className="grid gap-6 lg:grid-cols-1">
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-2 min-w-0">

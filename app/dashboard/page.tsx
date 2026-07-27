@@ -1,12 +1,16 @@
 import { Suspense } from "react";
 import { getUserHouseholds } from "@/lib/households/queries";
+import { getUserId } from "@/lib/users/queries";
 import CreateHouseholdModal from "@/components/dashboard/create-household-modal";
 import { HouseholdCard } from "@/components/dashboard/household-card";
 import { Home } from "lucide-react";
 import { HouseholdCardSkeleton } from "@/components/skeletons/household-card-skeleton";
 
 async function HouseholdsSection() {
-  const households = await getUserHouseholds();
+  const [households, userId] = await Promise.all([
+    getUserHouseholds(),
+    getUserId(),
+  ]);
 
   if (households.length === 0) {
     return (
@@ -38,6 +42,7 @@ async function HouseholdsSection() {
             name={household.name}
             currency={household.currency}
             memberCount={household.memberCount}
+            isOwner={household.owner_id === userId}
           />
         ))}
       </div>

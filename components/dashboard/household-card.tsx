@@ -21,11 +21,13 @@ export function HouseholdCard({
   name,
   currency,
   memberCount,
+  isOwner,
 }: {
   id: string;
   name: string;
   currency: string;
   memberCount: number;
+  isOwner: boolean;
 }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -56,16 +58,18 @@ export function HouseholdCard({
           </span>
           <CardTitle className="font-display text-lg">{name}</CardTitle>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 hover:text-destructive text-destructive"
-          onClick={() => handleDelete()}
-          disabled={isLoading}
-          aria-label={`Delete ${name}`}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        {isOwner ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 hover:text-destructive text-destructive"
+            onClick={() => handleDelete()}
+            disabled={isLoading}
+            aria-label={`Delete ${name}`}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        ) : null}
       </CardHeader>
       <CardContent className="flex flex-wrap gap-4 text-sm text-muted-foreground justify-between">
         <span className="inline-flex items-center gap-1.5">

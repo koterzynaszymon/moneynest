@@ -18,11 +18,13 @@ function getInitials(name: string, email: string) {
 type HouseholdHeaderProps = {
   household: HouseholdWithMemberCount;
   members: HouseholdMemberView[];
+  isOwner: boolean;
 };
 
 export function HouseholdHeader({
   household,
   members,
+  isOwner,
 }: HouseholdHeaderProps) {
   const previewMembers = members.slice(0, 3);
   const hasPreviewMembers = previewMembers.length > 0;
@@ -74,10 +76,12 @@ export function HouseholdHeader({
                   {household.memberCount === 1 ? "member" : "members"}
                 </span>
               </div>
-              <EditHouseholdMembersModal
-                members={members}
-                householdId={household.id}
-              />
+              {isOwner ? (
+                <EditHouseholdMembersModal
+                  members={members}
+                  householdId={household.id}
+                />
+              ) : null}
             </div>
             <p className="text-sm text-muted-foreground">
               Manage who belongs in this household.
