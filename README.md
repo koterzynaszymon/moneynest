@@ -96,7 +96,6 @@ npm run db:types
 - Add caching
 - Add wallets in a later version. Wallets should represent money sources
   such as bank account, cash, or savings, not categories.
-- Improve charts with better empty/loading states inside each chart card.
 - Add shared Zod validation schemas for forms and Server Actions.
 - Add stronger input limits for names, amounts, and descriptions.
 - Improve transaction amount display with consistent currency formatting.

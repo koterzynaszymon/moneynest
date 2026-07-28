@@ -9,6 +9,7 @@ import {
   type ChartData,
 } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
+import { DoughnutChartSkeleton } from "@/components/skeletons/chart-skeleton";
 import { getThemedDoughnutChartOptions } from "@/lib/charts/theme";
 import { useChartTheme } from "@/lib/charts/use-chart-theme";
 import {
@@ -34,33 +35,45 @@ export function CategoryIncomeChart({
     useState<CategoryIncomeTotals | null>(null);
 
   useEffect(() => {
+    let isActive = true;
+
     if (householdId && year && month) {
-      getCategoryIncomeTotals(householdId, year, month).then(
-        setCategoryIncomeTotals,
-      );
+      getCategoryIncomeTotals(householdId, year, month).then((totals) => {
+        if (isActive) {
+          setCategoryIncomeTotals(totals);
+        }
+      });
     }
+
+    return () => {
+      isActive = false;
+    };
   }, [householdId, year, month]);
 
-  const data: ChartData<"doughnut"> = {
-    labels: categoryIncomeTotals?.labels ?? [],
-    datasets: [
-      {
-        label: "Income",
-        data: categoryIncomeTotals?.values ?? [],
-        backgroundColor: colors.chartColors,
-        borderColor: colors.tooltipText,
-        borderWidth: 2,
-      },
-    ],
-  };
+  if (!categoryIncomeTotals) {
+    return <DoughnutChartSkeleton />;
+  }
 
-  if (!categoryIncomeTotals || categoryIncomeTotals.values.length === 0) {
+  if (categoryIncomeTotals.values.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
         No category income for this month yet.
       </div>
     );
   }
+
+  const data: ChartData<"doughnut"> = {
+    labels: categoryIncomeTotals.labels,
+    datasets: [
+      {
+        label: "Income",
+        data: categoryIncomeTotals.values,
+        backgroundColor: colors.chartColors,
+        borderColor: colors.tooltipText,
+        borderWidth: 2,
+      },
+    ],
+  };
 
   return (
     <div className="h-64">

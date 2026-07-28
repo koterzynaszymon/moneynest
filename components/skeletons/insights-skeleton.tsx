@@ -3,6 +3,10 @@ import {
   CardContent,
   CardHeader,
 } from "@/components/ui/card";
+import {
+  BarChartSkeleton,
+  DoughnutChartSkeleton,
+} from "@/components/skeletons/chart-skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function KpiCardSkeleton() {
@@ -16,7 +20,11 @@ function KpiCardSkeleton() {
   );
 }
 
-function ChartCardSkeleton() {
+function ChartCardSkeleton({
+  variant,
+}: {
+  variant: "bar" | "doughnut";
+}) {
   return (
     <Card>
       <CardHeader className="space-y-2">
@@ -24,7 +32,7 @@ function ChartCardSkeleton() {
         <Skeleton className="h-4 w-full max-w-xs" />
       </CardHeader>
       <CardContent>
-        <Skeleton className="h-64 w-full" />
+        {variant === "bar" ? <BarChartSkeleton /> : <DoughnutChartSkeleton />}
       </CardContent>
     </Card>
   );
@@ -47,9 +55,9 @@ export function InsightsSkeleton() {
         </section>
 
         <section className="grid gap-4 md:grid-cols-2 grid-cols-1">
-          <ChartCardSkeleton />
-          <ChartCardSkeleton />
-          <ChartCardSkeleton />
+          <ChartCardSkeleton variant="bar" />
+          <ChartCardSkeleton variant="doughnut" />
+          <ChartCardSkeleton variant="doughnut" />
         </section>
       </div>
     </div>

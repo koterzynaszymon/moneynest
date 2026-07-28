@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getBudget } from "@/lib/budgets/queries";
 import {
   getMonthlyExpenseTotal,
@@ -66,55 +67,46 @@ export function InsightsKpiStrip({
     };
   }, [householdId, year, month]);
 
-  const net = values ? values.income - values.spent : 0;
+  if (!values) {
+    return (
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCardSkeleton label="Spent this month" />
+        <KpiCardSkeleton label="Income this month" />
+        <KpiCardSkeleton label="Net" />
+        <KpiCardSkeleton label="Budget left" />
+      </section>
+    );
+  }
+
+  const net = values.income - values.spent;
   const budgetLeft =
-    values && values.budgetTotal !== null
-      ? values.budgetTotal - values.spent
-      : null;
+    values.budgetTotal !== null ? values.budgetTotal - values.spent : null;
 
   return (
     <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <KpiCard
         label="Spent this month"
         value={
-          values ? (
-            <Amount value={values.spent} currency={currency} tone="expense" />
-          ) : (
-            "Loading..."
-          )
+          <Amount value={values.spent} currency={currency} tone="expense" />
         }
       />
       <KpiCard
         label="Income this month"
         value={
-          values ? (
-            <Amount value={values.income} currency={currency} tone="income" />
-          ) : (
-            "Loading..."
-          )
+          <Amount value={values.income} currency={currency} tone="income" />
         }
       />
       <KpiCard
         label="Net"
-        value={
-          values ? (
-            <Amount value={net} currency={currency} tone="sign" showPlus />
-          ) : (
-            "Loading..."
-          )
-        }
+        value={<Amount value={net} currency={currency} tone="sign" showPlus />}
       />
       <KpiCard
         label="Budget left"
         value={
-          values ? (
-            budgetLeft !== null ? (
-              <Amount value={budgetLeft} currency={currency} tone="sign" />
-            ) : (
-              "Not set"
-            )
+          budgetLeft !== null ? (
+            <Amount value={budgetLeft} currency={currency} tone="sign" />
           ) : (
-            "Loading..."
+            "Not set"
           )
         }
       />
@@ -134,6 +126,17 @@ function KpiCard({
       <CardHeader className="space-y-1">
         <CardDescription>{label}</CardDescription>
         <CardTitle className="text-2xl">{value}</CardTitle>
+      </CardHeader>
+    </Card>
+  );
+}
+
+function KpiCardSkeleton({ label }: { label: string }) {
+  return (
+    <Card>
+      <CardHeader className="space-y-2">
+        <CardDescription>{label}</CardDescription>
+        <Skeleton className="h-7 w-24" />
       </CardHeader>
     </Card>
   );
