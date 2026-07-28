@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ChartColumn, FolderTree, PiggyBank, Receipt } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { Amount } from "@/components/ui/amount";
 import { HouseholdHeader } from "@/components/households/household-header";
 import { ModuleCard } from "@/components/households/module-card";
 import { getBudget } from "@/lib/budgets/queries";
@@ -11,7 +12,11 @@ import {
   getHouseholdById,
   getHouseholdMembers,
 } from "@/lib/households/queries";
-import { getMonthlyExpenseTotal, getTransactions } from "@/lib/transactions/queries";
+import {
+  getMonthlyExpenseTotal,
+  getMonthlyIncomeTotal,
+  getTransactions,
+} from "@/lib/transactions/queries";
 import { getUserId } from "@/lib/users/queries";
 import {
   Table,
@@ -36,16 +41,25 @@ export default async function HouseholdDetailPage({
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
-  const [household, members, categories, recentTransactions, budgetResult, spentThisMonth, userId] =
-    await Promise.all([
-      getHouseholdById(id),
-      getHouseholdMembers(id),
-      getCategories(id),
-      getTransactions(id, 1, 3, "all", "date", "desc"),
-      getBudget(id, currentYear, currentMonth),
-      getMonthlyExpenseTotal(id, currentYear, currentMonth),
-      getUserId(),
-    ]);
+  const [
+    household,
+    members,
+    categories,
+    recentTransactions,
+    budgetResult,
+    spentThisMonth,
+    incomeThisMonth,
+    userId,
+  ] = await Promise.all([
+    getHouseholdById(id),
+    getHouseholdMembers(id),
+    getCategories(id),
+    getTransactions(id, 1, 3, "all", "date", "desc"),
+    getBudget(id, currentYear, currentMonth),
+    getMonthlyExpenseTotal(id, currentYear, currentMonth),
+    getMonthlyIncomeTotal(id, currentYear, currentMonth),
+    getUserId(),
+  ]);
 
   if (!household) {
     notFound();
@@ -62,10 +76,19 @@ export default async function HouseholdDetailPage({
     (category) => category.type === "expense",
   ).length;
   const currentMonthBudget = budgetResult.success ? budgetResult.budget : null;
+  const netThisMonth = incomeThisMonth - spentThisMonth;
+  const budgetUsedPercent =
+    currentMonthBudget && currentMonthBudget.total_amount > 0
+      ? Math.round((spentThisMonth / currentMonthBudget.total_amount) * 100)
+      : null;
 
   return (
     <div className="space-y-6">
-      <HouseholdHeader household={household} members={members} isOwner={isOwner} />
+      <HouseholdHeader
+        household={household}
+        members={members}
+        isOwner={isOwner}
+      />
 
       <section className="grid gap-6 lg:grid-cols-1">
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-2 min-w-0">
@@ -200,9 +223,40 @@ export default async function HouseholdDetailPage({
             footerButtonText="View insights"
             footerButtonLink={`/household/${id}/insights`}
           >
-            <p className="text-sm text-muted-foreground">
-              No insights yet. Create your first transaction to see insights.
-            </p>
+            <div className="space-y-3 text-sm">
+              <div className="grid gap-2">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-muted-foreground">Spent this month</span>
+                  <Amount
+                    value={spentThisMonth}
+                    currency={household.currency}
+                    tone="expense"
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-muted-foreground">Income this month</span>
+                  <Amount
+                    value={incomeThisMonth}
+                    currency={household.currency}
+                    tone="income"
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-muted-foreground">Net</span>
+                  <Amount
+                    value={netThisMonth}
+                    currency={household.currency}
+                    tone="sign"
+                    showPlus
+                  />
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {budgetUsedPercent !== null
+                  ? `${budgetUsedPercent}% of this month's budget used.`
+                  : "Set a budget to track monthly usage here."}
+              </p>
+            </div>
           </ModuleCard>
         </div>
       </section>
