@@ -93,6 +93,7 @@ npm run db:types
   - biggest category changes
   - average daily spending
   - budget usage percentage
+- Add caching
 - Add wallets in a later version. Wallets should represent money sources
   such as bank account, cash, or savings, not categories.
 - Improve charts with better empty/loading states inside each chart card.
