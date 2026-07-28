@@ -9,6 +9,10 @@ type AddCategoryResult =
   | { success: true; category: Category }
   | { success: false; message: string };
 
+type UpdateCategoryResult =
+  | { success: true; category: Category }
+  | { success: false; message: string };
+
 export async function addCategory(
   householdId: string,
   name: string,
@@ -34,7 +38,7 @@ export async function addCategory(
     };
   }
 
-  if (!(await isCategoryNameUnique(householdId, trimmedName))) {
+  if (!(await isCategoryNameUnique(householdId, trimmedName, type))) {
     return {
       success: false,
       message: "Category name must be unique",
@@ -97,4 +101,79 @@ export async function deleteCategory(
   }
 
   return { success: true };
+}
+
+export async function updateCategory(
+  householdId: string,
+  categoryId: string,
+  name: string,
+): Promise<UpdateCategoryResult> {
+  const user = await requireUserId();
+  if (!user.success) {
+    return user;
+  }
+
+  const membership = await requireHouseholdMember(householdId, user.data);
+  if (!membership.success) {
+    return membership;
+  }
+
+  const trimmedName = name.trim();
+
+  if (!trimmedName) {
+    return {
+      success: false,
+      message: "Category name is required",
+    };
+  }
+
+  const supabase = await createClient();
+  const { data: category, error: categoryError } = await supabase
+    .from("categories")
+    .select("id, type")
+    .eq("id", categoryId)
+    .eq("household_id", householdId)
+    .maybeSingle();
+
+  if (categoryError) {
+    return { success: false, message: categoryError.message };
+  }
+
+  if (!category) {
+    return { success: false, message: "Category not found" };
+  }
+
+  if (
+    !(await isCategoryNameUnique(
+      householdId,
+      trimmedName,
+      category.type,
+      categoryId,
+    ))
+  ) {
+    return {
+      success: false,
+      message: "Category name must be unique",
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("categories")
+    .update({
+      name: trimmedName,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", categoryId)
+    .eq("household_id", householdId)
+    .select()
+    .single();
+
+  if (error) {
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+
+  return { success: true, category: data };
 }
