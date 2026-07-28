@@ -5,6 +5,9 @@ export default function Page() {
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
         <LoginForm />
+        <div className="flex justify-center text-sm text-muted-foreground mt-4">
+          <p>Test user: test@test.com / password123</p>
+        </div>
       </div>
     </div>
   );
