@@ -1,4 +1,5 @@
 # MoneyNest
+[Live Demo](https://moneynest-seven.vercel.app/dashboard)
 
 MoneyNest is a shared household finance app for tracking household members,
 categories, transactions, budgets, and spending insights in one place.
