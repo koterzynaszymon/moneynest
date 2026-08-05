@@ -264,6 +264,7 @@ export type Database = {
           id: string
           transaction_date: string
           updated_at: string | null
+          wallet_id: string | null
         }
         Insert: {
           amount: number
@@ -275,6 +276,7 @@ export type Database = {
           id?: string
           transaction_date?: string
           updated_at?: string | null
+          wallet_id?: string | null
         }
         Update: {
           amount?: number
@@ -286,6 +288,7 @@ export type Database = {
           id?: string
           transaction_date?: string
           updated_at?: string | null
+          wallet_id?: string | null
         }
         Relationships: [
           {
@@ -304,6 +307,48 @@ export type Database = {
           },
           {
             foreignKeyName: "transactions_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallets: {
+        Row: {
+          created_at: string
+          description: string | null
+          household_id: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          household_id: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          household_id?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallets_household_id_fkey"
             columns: ["household_id"]
             isOneToOne: false
             referencedRelation: "households"
