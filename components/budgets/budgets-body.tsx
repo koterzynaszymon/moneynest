@@ -16,6 +16,10 @@ import { Label } from "@/components/ui/label";
 import type { Category } from "@/lib/types/categories";
 import { useState } from "react";
 import { saveBudget, setCategoryLimit } from "@/lib/budgets/actions";
+import {
+  budgetInputSchema,
+  categoryLimitAmountSchema,
+} from "@/lib/budgets/schemas";
 import { toast } from "sonner";
 import type { Budget, CategoryBudget } from "@/lib/types/budgets";
 
@@ -88,24 +92,24 @@ export function BudgetsBody({
     event.preventDefault();
     try {
       setError(null);
-      if (year < 2000 || year > 2100) {
-        setError("Year must be between 2000 and 2100");
+
+      const parsed = budgetInputSchema.safeParse({
+        year,
+        month: monthNumber,
+        totalAmount,
+      });
+
+      if (!parsed.success) {
+        setError(parsed.error.issues[0]?.message ?? "Invalid input");
         return;
       }
-      if (monthNumber < 1 || monthNumber > 12) {
-        setError("Month must be between 1 and 12");
-        return;
-      }
-      if (totalAmount <= 0) {
-        setError("Total amount must be greater than 0");
-        return;
-      }
+
       setIsLoading(true);
       const result = await saveBudget(
         householdId,
-        year,
-        monthNumber,
-        totalAmount,
+        parsed.data.year,
+        parsed.data.month,
+        parsed.data.totalAmount,
       );
       if (result.success) {
         toast.success(
@@ -138,9 +142,12 @@ export function BudgetsBody({
       return;
     }
 
-    const amount = Number(limitDrafts[categoryId]);
-    if (!Number.isFinite(amount) || amount <= 0) {
-      toast.error("Enter a limit greater than 0");
+    const parsed = categoryLimitAmountSchema.safeParse({
+      amount: Number(limitDrafts[categoryId]),
+    });
+
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
       return;
     }
 
@@ -150,7 +157,7 @@ export function BudgetsBody({
         householdId,
         visibleCurrentMonthBudget.id,
         categoryId,
-        amount,
+        parsed.data.amount,
       );
 
       if (result.success) {

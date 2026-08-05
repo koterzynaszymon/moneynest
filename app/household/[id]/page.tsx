@@ -226,7 +226,9 @@ export default async function HouseholdDetailPage({
             <div className="space-y-3 text-sm">
               <div className="grid gap-2">
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Spent this month</span>
+                  <span className="text-muted-foreground">
+                    Spent this month
+                  </span>
                   <Amount
                     value={spentThisMonth}
                     currency={household.currency}
@@ -234,7 +236,9 @@ export default async function HouseholdDetailPage({
                   />
                 </div>
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Income this month</span>
+                  <span className="text-muted-foreground">
+                    Income this month
+                  </span>
                   <Amount
                     value={incomeThisMonth}
                     currency={household.currency}

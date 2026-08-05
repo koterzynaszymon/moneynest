@@ -3,6 +3,8 @@ import { requireHouseholdMember, requireUserId } from "../auth/guards";
 import { getCategoryById } from "../categories/queries";
 import { createClient } from "../supabase/server";
 import type { Budget } from "../types/budgets";
+import { parseInput } from "../validation/parse-input";
+import { budgetInputSchema, categoryLimitAmountSchema } from "./schemas";
 import { hasBudgetForMonth } from "./queries";
 
 export { requireHouseholdMember, requireUserId };
@@ -13,19 +15,10 @@ export function validateBudgetInput(
   month: number,
   totalAmount: number,
 ): GuardResult<null> {
-  if (year < 2000 || year > 2100) {
-    return { success: false, message: "Year must be between 2000 and 2100" };
-  }
+  const parsed = parseInput(budgetInputSchema, { year, month, totalAmount });
 
-  if (month < 1 || month > 12) {
-    return { success: false, message: "Month must be between 1 and 12" };
-  }
-
-  if (!Number.isFinite(totalAmount) || totalAmount <= 0) {
-    return {
-      success: false,
-      message: "Total amount must be a valid number and greater than 0",
-    };
+  if (!parsed.success) {
+    return parsed;
   }
 
   return { success: true, data: null };
@@ -87,11 +80,10 @@ export async function requireBudgetExistsForMonth(
 }
 
 export function validateCategoryLimitAmount(amount: number): GuardResult<null> {
-  if (!Number.isFinite(amount) || amount <= 0) {
-    return {
-      success: false,
-      message: "Limit must be a valid number and greater than 0",
-    };
+  const parsed = parseInput(categoryLimitAmountSchema, { amount });
+
+  if (!parsed.success) {
+    return parsed;
   }
 
   return { success: true, data: null };
