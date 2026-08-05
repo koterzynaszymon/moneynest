@@ -9,6 +9,11 @@ import {
   deleteCategory,
   updateCategory,
 } from "@/lib/categories/actions";
+import {
+  addCategoryInputSchema,
+  updateCategoryInputSchema,
+} from "@/lib/categories/schemas";
+import { CATEGORY_NAME_MAX_LENGTH } from "@/lib/categories/constants";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -57,7 +62,22 @@ export function CategoriesBody({
 
     setIsLoading(true);
 
-    const result = await addCategory(householdId, trimmedName, categoryType);
+    const parsed = addCategoryInputSchema.safeParse({
+      name: categoryName,
+      type: categoryType,
+    });
+
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
+      setIsLoading(false);
+      return;
+    }
+
+    const result = await addCategory(
+      householdId,
+      parsed.data.name,
+      parsed.data.type,
+    );
 
     if (result.success) {
       setCategoryName("");
@@ -82,6 +102,7 @@ export function CategoriesBody({
               value={categoryName}
               onChange={(e) => setCategoryName(e.target.value)}
               placeholder="Groceries, rent, salary..."
+              maxLength={CATEGORY_NAME_MAX_LENGTH}
               className="sm:max-w-sm"
             />
             <select
@@ -161,10 +182,19 @@ function EditableCategoryBadge({
     }
 
     setIsUpdating(true);
+
+    const parsed = updateCategoryInputSchema.safeParse({ name: draftName });
+
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
+      setIsUpdating(false);
+      return;
+    }
+
     const result = await updateCategory(
       householdId,
       category.id,
-      trimmedDraftName,
+      parsed.data.name,
     );
 
     if (result.success) {
@@ -239,6 +269,7 @@ function EditableCategoryBadge({
                   value={draftName}
                   onChange={(event) => setDraftName(event.target.value)}
                   placeholder="Groceries, rent, salary..."
+                  maxLength={CATEGORY_NAME_MAX_LENGTH}
                 />
                 {isDuplicate ? (
                   <p className="text-sm text-expense">

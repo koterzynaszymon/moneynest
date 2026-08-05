@@ -3,6 +3,11 @@
 import { requireHouseholdMember, requireUserId } from "../auth/guards";
 import { createClient } from "../supabase/server";
 import { Category, DeleteCategoryResult } from "../types/categories";
+import { parseInput } from "../validation/parse-input";
+import {
+  addCategoryInputSchema,
+  updateCategoryInputSchema,
+} from "./schemas";
 import { isCategoryNameUnique } from "./queries";
 
 type AddCategoryResult =
@@ -28,17 +33,16 @@ export async function addCategory(
     return membership;
   }
 
-  const supabase = await createClient();
-  const trimmedName = name.trim();
-
-  if (!trimmedName) {
-    return {
-      success: false,
-      message: "Category name is required",
-    };
+  const input = parseInput(addCategoryInputSchema, { name, type });
+  if (!input.success) {
+    return input;
   }
 
-  if (!(await isCategoryNameUnique(householdId, trimmedName, type))) {
+  const supabase = await createClient();
+  const trimmedName = input.data.name;
+  const categoryType = input.data.type;
+
+  if (!(await isCategoryNameUnique(householdId, trimmedName, categoryType))) {
     return {
       success: false,
       message: "Category name must be unique",
@@ -50,7 +54,7 @@ export async function addCategory(
     .insert({
       household_id: householdId,
       name: trimmedName,
-      type: type,
+      type: categoryType,
     })
     .select()
     .single();
@@ -118,14 +122,12 @@ export async function updateCategory(
     return membership;
   }
 
-  const trimmedName = name.trim();
-
-  if (!trimmedName) {
-    return {
-      success: false,
-      message: "Category name is required",
-    };
+  const input = parseInput(updateCategoryInputSchema, { name });
+  if (!input.success) {
+    return input;
   }
+
+  const trimmedName = input.data.name;
 
   const supabase = await createClient();
   const { data: category, error: categoryError } = await supabase
