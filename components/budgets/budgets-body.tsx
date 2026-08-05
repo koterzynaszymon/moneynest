@@ -250,8 +250,7 @@ export function BudgetsBody({
         <CardHeader>
           <CardTitle>Monthly budget setup</CardTitle>
           <CardDescription>
-            This frontend shell shows the fields the budget action will save in
-            the next step.
+           Set a monthly budget for the current month.
           </CardDescription>
         </CardHeader>
         <CardContent>
