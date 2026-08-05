@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { ChartColumn, FolderTree, PiggyBank, Receipt } from "lucide-react";
+import { ChartColumn, FolderTree, PiggyBank, Receipt, Wallet } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Amount } from "@/components/ui/amount";
@@ -259,6 +259,21 @@ export default async function HouseholdDetailPage({
                 {budgetUsedPercent !== null
                   ? `${budgetUsedPercent}% of this month's budget used.`
                   : "Set a budget to track monthly usage here."}
+              </p>
+            </div>
+          </ModuleCard>
+          <ModuleCard
+            icon={Wallet}
+            title="Wallets"
+            description="View and manage the household's wallets."
+            footerButtonText="View wallets"
+            footerButtonLink={`/household/${id}/wallets`}
+          >
+            <div className="space-y-3 text-sm">
+              <div className="grid gap-2">
+              </div>
+              <p className="text-sm text-muted-foreground">
+                No wallets yet. Create your first one to start tracking your spending.
               </p>
             </div>
           </ModuleCard>
