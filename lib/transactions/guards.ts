@@ -2,7 +2,8 @@ import type { GuardResult } from "../auth/guards";
 import { requireHouseholdMember, requireUserId } from "../auth/guards";
 import { getCategoryById } from "../categories/queries";
 import type { Transactions } from "../types/transactions";
-import { TRANSACTION_DESCRIPTION_MAX_LENGTH } from "./constants";
+import { parseInput } from "../validation/parse-input";
+import { transactionInputSchema } from "./schemas";
 import { getTransactionById } from "./queries";
 
 export { requireHouseholdMember, requireUserId };
@@ -13,26 +14,14 @@ export function validateTransactionInput(
   transactionDate: string,
   description: string,
 ): GuardResult<null> {
-  if (!Number.isFinite(amount) || amount <= 0) {
-    return {
-      success: false,
-      message: "Amount must be a number greater than 0",
-    };
-  }
+  const parsed = parseInput(transactionInputSchema, {
+    amount,
+    transactionDate,
+    description,
+  });
 
-  const today = new Date().toISOString().slice(0, 10);
-  if (!transactionDate || transactionDate > today) {
-    return {
-      success: false,
-      message: "Transaction date must be in the past or today",
-    };
-  }
-
-  if (description.length > TRANSACTION_DESCRIPTION_MAX_LENGTH) {
-    return {
-      success: false,
-      message: `Description must be at most ${TRANSACTION_DESCRIPTION_MAX_LENGTH} characters`,
-    };
+  if (!parsed.success) {
+    return parsed;
   }
 
   return { success: true, data: null };

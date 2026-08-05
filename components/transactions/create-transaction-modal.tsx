@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Category } from "@/lib/types/categories";
 import { TRANSACTION_DESCRIPTION_MAX_LENGTH } from "@/lib/transactions/constants";
+import { transactionInputSchema } from "@/lib/transactions/schemas";
 import { addTransaction } from "@/lib/transactions/actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -50,12 +51,23 @@ export default function CreateTransactionModal({
     e.preventDefault();
     setIsLoading(true);
     try {
+      const parsed = transactionInputSchema.safeParse({
+        amount: amount ? Number(amount) : Number.NaN,
+        transactionDate,
+        description: description.trim(),
+      });
+
+      if (!parsed.success) {
+        toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
+        return;
+      }
+
       const result = await addTransaction(
         householdId,
         categoryId,
-        amount ? Number(amount) : 0,
-        description.trim(),
-        transactionDate,
+        parsed.data.amount,
+        parsed.data.description,
+        parsed.data.transactionDate,
       );
       if (result.success) {
         setOpen(false);
