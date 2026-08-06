@@ -66,6 +66,9 @@ export function HouseholdDetailSkeleton() {
         <div className="grid gap-6 sm:grid-cols-2">
           <ModuleSkeleton withFooter />
           <ModuleSkeleton />
+          <ModuleSkeleton />
+          <ModuleSkeleton />
+          <ModuleSkeleton />
         </div>
       </section>
     </div>
