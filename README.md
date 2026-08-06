@@ -86,7 +86,7 @@ npm run db:types
   the server/database side.
 
 ## TODO / Roadmap
-
+- Implement ZOD on wallets
 - Pagination of categories budgets (/household/:id/budgets)
 - Add more statistics to the insights page:
   - month-over-month spending changes
@@ -95,8 +95,7 @@ npm run db:types
   - average daily spending
   - budget usage percentage
 - Add caching
-- Add wallets in a later version. Wallets should represent money sources
-  such as bank account, cash, or savings, not categories.
+
 - Improve transaction amount display with consistent currency formatting.
 - Add deployment documentation.
 - Add other languages and currencies (for now the app only uses PLN and English language)
