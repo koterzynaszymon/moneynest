@@ -26,21 +26,15 @@ export async function getWallets(householdId: string): Promise<Wallets[]> {
 
 export async function getWalletById(id: string): Promise<Wallets | null> {
   const supabase = await createClient();
-  const userId = await requireUserId();
-  if (!userId.success) {
-    throw new Error(userId.message);
-  }
-  const membership = await requireHouseholdMember(householdId, userId.data);
-  if (!membership.success) {
-    throw new Error(membership.message);
-  }
   const { data, error } = await supabase
     .from("wallets")
     .select("*")
-    .eq("id", id);
+    .eq("id", id)
+    .maybeSingle();
+
   if (error) {
-    throw error;
-  } else {
-    return data[0] as Wallets;
+    return null;
   }
+
+  return data as Wallets | null;
 }

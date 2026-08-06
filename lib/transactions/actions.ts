@@ -6,6 +6,7 @@ import {
   requireCategoryInHousehold,
   requireHouseholdMember,
   requireUserId,
+  requireWalletInHousehold,
   validateTransactionInput,
 } from "./guards";
 
@@ -15,6 +16,7 @@ export async function addTransaction(
   amount: number,
   description: string,
   transactionDate: string,
+  walletId?: string | null,
 ): Promise<Response> {
   const supabase = await createClient();
   const user = await requireUserId();
@@ -29,6 +31,15 @@ export async function addTransaction(
   const membership = await requireHouseholdMember(householdId, user.data);
   if (!membership.success) return membership;
 
+  const resolvedWalletId = walletId?.trim() ? walletId.trim() : null;
+  if (resolvedWalletId) {
+    const wallet = await requireWalletInHousehold(
+      resolvedWalletId,
+      householdId,
+    );
+    if (!wallet.success) return wallet;
+  }
+
   const { data, error } = await supabase
     .from("transactions")
     .insert({
@@ -38,6 +49,7 @@ export async function addTransaction(
       description: description,
       created_by: user.data,
       transaction_date: transactionDate,
+      wallet_id: resolvedWalletId,
     })
     .select()
     .single();

@@ -3,6 +3,7 @@ import { requireHouseholdMember, requireUserId } from "../auth/guards";
 import { getCategoryById } from "../categories/queries";
 import type { Transactions } from "../types/transactions";
 import { parseInput } from "../validation/parse-input";
+import { getWalletById } from "../wallets/queries";
 import { transactionInputSchema } from "./schemas";
 import { getTransactionById } from "./queries";
 
@@ -37,6 +38,22 @@ export async function requireCategoryInHousehold(
     return {
       success: false,
       message: "Category not found or you don't have access to it",
+    };
+  }
+
+  return { success: true, data: null };
+}
+
+export async function requireWalletInHousehold(
+  walletId: string,
+  householdId: string,
+): Promise<GuardResult<null>> {
+  const wallet = await getWalletById(walletId);
+
+  if (!wallet || wallet.household_id !== householdId) {
+    return {
+      success: false,
+      message: "Wallet not found or you don't have access to it",
     };
   }
 
