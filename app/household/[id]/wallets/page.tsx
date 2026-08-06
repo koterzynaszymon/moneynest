@@ -22,7 +22,7 @@ export default async function WalletsPage({
         householdName={household.name}
         walletCount={wallets.length}
       />
-      <WalletsBody householdId={id} wallets={wallets} />
+      <WalletsBody householdId={household.id} wallets={wallets} />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { requireHouseholdMember, requireUserId } from "../auth/guards";
 import { createClient } from "../supabase/server";
 import { Wallets } from "../types/wallets";
@@ -70,7 +71,12 @@ type UpdateWalletActionResult =
       success: false;
       message: string;
     };
-export async function updateWallet(householdId: string, walletId: string, name: string, description?: string): Promise<UpdateWalletActionResult> {
+export async function updateWallet(
+  householdId: string,
+  walletId: string,
+  name: string,
+  description?: string,
+): Promise<UpdateWalletActionResult> {
   const supabase = await createClient();
   const userId = await requireUserId();
   if (!userId.success) {
@@ -110,4 +116,49 @@ export async function updateWallet(householdId: string, walletId: string, name: 
   } else {
     return { success: true, message: "Wallet updated successfully" };
   }
+}
+
+type DeleteWalletActionResult =
+  | {
+      success: true;
+      message: string;
+    }
+  | {
+      success: false;
+      message: string;
+    };
+export async function deleteWallet(
+  householdId: string,
+  walletId: string,
+): Promise<DeleteWalletActionResult> {
+  const supabase = await createClient();
+  const userId = await requireUserId();
+  if (!userId.success) {
+    return { success: false, message: userId.message };
+  }
+  const membership = await requireHouseholdMember(householdId, userId.data);
+  if (!membership.success) {
+    return { success: false, message: membership.message };
+  }
+  const { data, error } = await supabase
+    .from("wallets")
+    .delete()
+    .eq("id", walletId)
+    .eq("household_id", householdId)
+    .select()
+    .single();
+  if (error?.code === "23503") {
+    return {
+      success: false,
+      message: "Wallet is associated with transactions",
+    };
+  }
+  if (error || !data) {
+    return {
+      success: false,
+      message: error ? "Could not delete wallet" : "Wallet not found",
+    };
+  }
+  revalidatePath(`/household/${householdId}/wallets`, "page");
+  return { success: true, message: "Wallet deleted" };
 }
