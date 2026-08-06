@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Pencil } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,35 +17,41 @@ import {
 import { Field, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { Wallets } from "@/lib/types/wallets";
+import { updateWallet } from "@/lib/wallets/actions";
 import { toast } from "sonner";
-import { createWallet } from "@/lib/wallets/actions";
 import { useRouter } from "next/navigation";
 
 const WALLET_NAME_MAX_LENGTH = 50;
 const WALLET_DESCRIPTION_MAX_LENGTH = 80;
 
-type CreateWalletModalProps = {
-  householdId: string;
+type EditWalletModalProps = {
+  wallet: Wallets;
 };
 
-export function CreateWalletModal({ householdId }: CreateWalletModalProps) {
+export function EditWalletModal({ wallet }: EditWalletModalProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const [name, setName] = useState(wallet.name);
+  const [description, setDescription] = useState(wallet.description ?? "");
 
   function resetForm() {
-    setName("");
-    setDescription("");
+    setName(wallet.name);
+    setDescription(wallet.description ?? "");
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const result = await createWallet(householdId, name, description);
+    const result = await updateWallet(
+      wallet.household_id,
+      wallet.id,
+      name,
+      description,
+    );
     if (result.success) {
       setOpen(false);
       resetForm();
-      toast.success("Wallet created successfully");
+      toast.success(result.message);
       router.refresh();
     } else {
       toast.error(result.message);
@@ -57,33 +63,36 @@ export function CreateWalletModal({ householdId }: CreateWalletModalProps) {
       open={open}
       onOpenChange={(nextOpen) => {
         setOpen(nextOpen);
-        if (!nextOpen) {
+        if (nextOpen) {
           resetForm();
         }
       }}
     >
       <DialogTrigger asChild>
-        <Button type="button">
-          <Plus className="h-4 w-4" />
-          Add wallet
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="hover:border-blue-500 hover:text-blue-500"
+          aria-label={`Edit ${wallet.name}`}
+        >
+          <Pencil className="h-4 w-4 text-blue-500" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit}>
-          <input type="hidden" name="householdId" value={householdId} />
           <DialogHeader>
-            <DialogTitle>Add wallet</DialogTitle>
+            <DialogTitle>Edit wallet</DialogTitle>
             <DialogDescription>
-              Create a money source for this household, like a bank account or
-              cash.
+              Update the name or description for this money source.
             </DialogDescription>
           </DialogHeader>
 
           <FieldGroup className="mt-4 gap-4">
             <Field>
-              <Label htmlFor="wallet-name">Name*</Label>
+              <Label htmlFor={`wallet-name-${wallet.id}`}>Name*</Label>
               <Input
-                id="wallet-name"
+                id={`wallet-name-${wallet.id}`}
                 name="name"
                 placeholder="mBank, Cash, Savings..."
                 maxLength={WALLET_NAME_MAX_LENGTH}
@@ -95,14 +104,14 @@ export function CreateWalletModal({ householdId }: CreateWalletModalProps) {
             </Field>
 
             <Field>
-              <Label htmlFor="wallet-description">
+              <Label htmlFor={`wallet-description-${wallet.id}`}>
                 Description{" "}
                 <span className="font-normal text-muted-foreground">
                   (optional)
                 </span>
               </Label>
               <Input
-                id="wallet-description"
+                id={`wallet-description-${wallet.id}`}
                 name="description"
                 placeholder="Shared checking account..."
                 maxLength={WALLET_DESCRIPTION_MAX_LENGTH}
@@ -118,7 +127,7 @@ export function CreateWalletModal({ householdId }: CreateWalletModalProps) {
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit">Add wallet</Button>
+            <Button type="submit">Save changes</Button>
           </DialogFooter>
         </form>
       </DialogContent>
