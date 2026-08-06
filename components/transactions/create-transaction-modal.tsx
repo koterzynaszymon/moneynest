@@ -18,6 +18,7 @@ import { Field, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Category } from "@/lib/types/categories";
+import type { Wallets } from "@/lib/types/wallets";
 import { TRANSACTION_DESCRIPTION_MAX_LENGTH } from "@/lib/transactions/constants";
 import { transactionInputSchema } from "@/lib/transactions/schemas";
 import { addTransaction } from "@/lib/transactions/actions";
@@ -27,6 +28,7 @@ import { useRouter } from "next/navigation";
 type CreateTransactionModalProps = {
   householdId: string;
   categories: Category[];
+  wallets: Wallets[];
 };
 
 function getTodayDate() {
@@ -36,10 +38,12 @@ function getTodayDate() {
 export default function CreateTransactionModal({
   householdId,
   categories,
+  wallets,
 }: CreateTransactionModalProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [categoryId, setCategoryId] = useState("");
+  const [walletId, setWalletId] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [transactionDate, setTransactionDate] = useState(getTodayDate());
@@ -68,10 +72,12 @@ export default function CreateTransactionModal({
         parsed.data.amount,
         parsed.data.description,
         parsed.data.transactionDate,
+        walletId || null,
       );
       if (result.success) {
         setOpen(false);
         setCategoryId("");
+        setWalletId("");
         setAmount("");
         setDescription("");
         setTransactionDate(getTodayDate());
@@ -133,6 +139,29 @@ export default function CreateTransactionModal({
               </Field>
 
               <Field>
+                <Label htmlFor="transaction-wallet">
+                  Wallet{" "}
+                  <span className="font-normal text-muted-foreground">
+                    (optional)
+                  </span>
+                </Label>
+                <select
+                  id="transaction-wallet"
+                  name="walletId"
+                  value={walletId}
+                  onChange={(e) => setWalletId(e.target.value)}
+                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="">No wallet</option>
+                  {wallets.map((wallet) => (
+                    <option key={wallet.id} value={wallet.id}>
+                      {wallet.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field>
                 <Label htmlFor="transaction-amount">Amount (PLN)*</Label>
                 <Input
                   id="transaction-amount"
@@ -143,7 +172,7 @@ export default function CreateTransactionModal({
                   placeholder="0.00"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  required  
+                  required
                 />
               </Field>
 

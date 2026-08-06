@@ -4,6 +4,7 @@ import { getHouseholdById } from "@/lib/households/queries";
 import { notFound } from "next/navigation";
 import { getCategories } from "@/lib/categories/queries";
 import { getTransactions } from "@/lib/transactions/queries";
+import { getWallets } from "@/lib/wallets/queries";
 
 export default async function TransactionsPage({
   params,
@@ -35,6 +36,7 @@ export default async function TransactionsPage({
     notFound();
   }
   const categories = await getCategories(id);
+  const wallets = await getWallets(id);
   const { transactions, totalPages } = await getTransactions(
     id,
     page,
@@ -45,7 +47,11 @@ export default async function TransactionsPage({
   );
   return (
     <div className="space-y-8">
-      <TransactionsHeader householdId={id} categories={categories} />
+      <TransactionsHeader
+        householdId={id}
+        categories={categories}
+        wallets={wallets}
+      />
       <TransactionsBody
         transactions={transactions}
         categories={categories}
