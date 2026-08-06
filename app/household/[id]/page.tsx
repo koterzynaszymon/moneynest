@@ -18,6 +18,7 @@ import {
   getTransactions,
 } from "@/lib/transactions/queries";
 import { getUserId } from "@/lib/users/queries";
+import { getWallets } from "@/lib/wallets/queries";
 import {
   Table,
   TableBody,
@@ -50,6 +51,7 @@ export default async function HouseholdDetailPage({
     spentThisMonth,
     incomeThisMonth,
     userId,
+    wallets,
   ] = await Promise.all([
     getHouseholdById(id),
     getHouseholdMembers(id),
@@ -59,6 +61,7 @@ export default async function HouseholdDetailPage({
     getMonthlyExpenseTotal(id, currentYear, currentMonth),
     getMonthlyIncomeTotal(id, currentYear, currentMonth),
     getUserId(),
+    getWallets(id),
   ]);
 
   if (!household) {
@@ -72,6 +75,8 @@ export default async function HouseholdDetailPage({
     categories.length - previewCategories.length,
     0,
   );
+  const previewWallets = wallets.slice(0, 6);
+  const hiddenWalletCount = Math.max(wallets.length - previewWallets.length, 0);
   const expenseCategoryCount = categories.filter(
     (category) => category.type === "expense",
   ).length;
@@ -269,13 +274,29 @@ export default async function HouseholdDetailPage({
             footerButtonText="View wallets"
             footerButtonLink={`/household/${id}/wallets`}
           >
-            <div className="space-y-3 text-sm">
-              <div className="grid gap-2">
+            {previewWallets.length > 0 ? (
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {previewWallets.map((wallet) => (
+                    <Badge key={wallet.id} variant="outline" className="py-1">
+                      {wallet.name}
+                    </Badge>
+                  ))}
+                  {hiddenWalletCount > 0 ? (
+                    <Badge variant="outline">+{hiddenWalletCount} more</Badge>
+                  ) : null}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {wallets.length} wallet{wallets.length === 1 ? "" : "s"} in
+                  this household.
+                </p>
               </div>
-              <p className="text-sm text-muted-foreground">
-                No wallets yet. Create your first one to start tracking your spending.
-              </p>
-            </div>
+            ) : (
+              <div className="rounded-lg border border-dashed px-4 py-6 text-sm text-muted-foreground">
+                No wallets yet. Create your first one to start tracking your
+                spending.
+              </div>
+            )}
           </ModuleCard>
         </div>
       </section>
