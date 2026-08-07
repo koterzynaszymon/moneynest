@@ -7,13 +7,16 @@ import { deleteWallet } from "@/lib/wallets/actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Amount } from "../ui/amount";
 
 export function WalletsBody({
   wallets,
   householdId,
+  currency,
 }: {
-  wallets: Wallets[];
+  wallets: (Wallets & { amount: number })[];
   householdId: string;
+  currency: string;
 }) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -73,9 +76,14 @@ export function WalletsBody({
             </div>
           </div>
           {wallet.description ? (
+            <div className="flex justify-between gap-3 flex-col">
             <p className="text-sm text-muted-foreground">
-              {wallet.description}
-            </p>
+                {wallet.description}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Spent this month: <Amount value={wallet.amount} currency={currency} />
+              </p>
+            </div>
           ) : (
             <p className="text-sm text-muted-foreground">No description</p>
           )}
