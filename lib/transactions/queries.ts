@@ -19,17 +19,24 @@ export async function getTransactions(
   type: TransactionTypeFilter = "all",
   sort: TransactionSort = "date",
   order: TransactionOrder = "desc",
+  year: number = new Date().getFullYear(),
+  month: number = new Date().getMonth() + 1,
 ): Promise<GetTransactionsResult> {
   const supabase = await createClient();
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
   const orderBy = sort === "amount" ? "amount" : "transaction_date";
   const ascending = order === "asc";
+  const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
+  const lastDay = new Date(year, month, 0).getDate();
+  const endDate = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
 
   let query = supabase
     .from("transactions")
     .select("*, categories!inner(type)", { count: "exact" })
-    .eq("household_id", householdId);
+    .eq("household_id", householdId)
+    .gte("transaction_date", startDate)
+    .lte("transaction_date", endDate);
   if (type !== "all") {
     query = query.eq("categories.type", type);
   }

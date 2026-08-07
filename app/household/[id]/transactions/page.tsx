@@ -16,6 +16,8 @@ export default async function TransactionsPage({
     type?: string;
     sort?: string;
     order?: string;
+    year?: string;
+    month?: string;
   }>;
 }) {
   const { id } = await params;
@@ -24,13 +26,31 @@ export default async function TransactionsPage({
     type: typeParam,
     sort: sortParam,
     order: orderParam,
+    year: yearParam,
+    month: monthParam,
   } = await searchParams;
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
   const parsedPage = Number(pageParam ?? 1);
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? Math.floor(parsedPage) : 1;
   const type =
     typeParam === "expense" || typeParam === "income" ? typeParam : "all";
   const sort = sortParam === "amount" ? sortParam : "date";
   const order = orderParam === "asc" ? orderParam : "desc";
+  const parsedYear = Number(yearParam);
+  const parsedMonth = Number(monthParam);
+  const hasValidYear =
+    Number.isInteger(parsedYear) && parsedYear >= 2000 && parsedYear <= 2100;
+  const hasValidMonth =
+    Number.isInteger(parsedMonth) && parsedMonth >= 1 && parsedMonth <= 12;
+  const requestedYear = hasValidYear ? parsedYear : currentYear;
+  const requestedMonth = hasValidMonth ? parsedMonth : currentMonth;
+  const isFutureMonth =
+    requestedYear > currentYear ||
+    (requestedYear === currentYear && requestedMonth > currentMonth);
+  const year = isFutureMonth ? currentYear : requestedYear;
+  const month = isFutureMonth ? currentMonth : requestedMonth;
   const household = await getHouseholdById(id);
   if (!household) {
     notFound();
@@ -44,6 +64,8 @@ export default async function TransactionsPage({
     type,
     sort,
     order,
+    year,
+    month,
   );
   return (
     <div className="space-y-8">
@@ -58,6 +80,8 @@ export default async function TransactionsPage({
         currentPage={page}
         totalPages={totalPages}
         householdId={id}
+        year={year}
+        month={month}
       />
     </div>
   );
