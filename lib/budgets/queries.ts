@@ -1,8 +1,9 @@
 "use server";
 
+import { isUserInHousehold } from "../households/queries";
 import { createClient } from "../supabase/server";
 import { Budget, CategoryBudget } from "../types/budgets";
-import { isUserInHousehold } from "../households/queries";
+import { getUserId } from "../users/queries";
 
 type BudgetActionResult =
   | { success: true; budget: Budget }
@@ -19,15 +20,14 @@ export async function getBudget(
 ): Promise<BudgetActionResult> {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) {
+  let userId: string;
+  try {
+    userId = await getUserId();
+  } catch {
     return { success: false, message: "User not found" };
   }
 
-  const isMember = await isUserInHousehold(householdId, user.id);
+  const isMember = await isUserInHousehold(householdId, userId);
   if (!isMember) {
     return { success: false, message: "User is not a member of the household" };
   }
@@ -83,15 +83,14 @@ export async function getCategoryBudgets(
 ): Promise<CategoryBudgetsResult> {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) {
+  let userId: string;
+  try {
+    userId = await getUserId();
+  } catch {
     return { success: false, message: "User not found" };
   }
 
-  const isMember = await isUserInHousehold(householdId, user.id);
+  const isMember = await isUserInHousehold(householdId, userId);
   if (!isMember) {
     return { success: false, message: "User is not a member of the household" };
   }

@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 import { isUserInHousehold } from "../households/queries";
 import { createClient } from "../supabase/server";
 
@@ -11,7 +13,7 @@ export type GuardResult<T> =
       message: string;
     };
 
-export async function requireUserId(): Promise<GuardResult<string>> {
+export const requireUserId = cache(async (): Promise<GuardResult<string>> => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -23,20 +25,22 @@ export async function requireUserId(): Promise<GuardResult<string>> {
   }
 
   return { success: true, data: user.id };
-}
+});
 
-export async function requireHouseholdMember(
-  householdId: string,
-  userId: string,
-): Promise<GuardResult<null>> {
-  const isMember = await isUserInHousehold(householdId, userId);
+export const requireHouseholdMember = cache(
+  async (
+    householdId: string,
+    userId: string,
+  ): Promise<GuardResult<null>> => {
+    const isMember = await isUserInHousehold(householdId, userId);
 
-  if (!isMember) {
-    return {
-      success: false,
-      message: "You don't have access to this household",
-    };
-  }
+    if (!isMember) {
+      return {
+        success: false,
+        message: "You don't have access to this household",
+      };
+    }
 
-  return { success: true, data: null };
-}
+    return { success: true, data: null };
+  },
+);

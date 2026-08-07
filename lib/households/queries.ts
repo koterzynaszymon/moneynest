@@ -1,6 +1,8 @@
-import { HouseholdWithMemberCount } from "../types/household";
+import { cache } from "react";
+
 import { createClient } from "../supabase/server";
 import { getUserId } from "../users/queries";
+import { HouseholdWithMemberCount } from "../types/household";
 import { HouseholdMemberRow, HouseholdMemberView } from "../types/user";
 
 type HouseholdRowWithMemberCount = Omit<
@@ -12,14 +14,7 @@ type HouseholdRowWithMemberCount = Omit<
 
 export async function getUserHouseholds(): Promise<HouseholdWithMemberCount[]> {
   const supabase = await createClient();
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) {
-    throw new Error("User not found");
-  }
+  await getUserId();
 
   const { data, error } = await supabase
     .from("households")
@@ -71,17 +66,19 @@ export async function isHouseholdOwner(householdId: string): Promise<boolean> {
   return userId === householdOwnerId;
 }
 
-export async function isUserInHousehold(householdId: string, userId: string){
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("household_members")
-    .select("id")
-    .eq("household_id", householdId)
-    .eq("member_id", userId)
-    .maybeSingle();
-  if (error) return false;
-  return data !== null;
-}
+export const isUserInHousehold = cache(
+  async (householdId: string, userId: string): Promise<boolean> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("household_members")
+      .select("id")
+      .eq("household_id", householdId)
+      .eq("member_id", userId)
+      .maybeSingle();
+    if (error) return false;
+    return data !== null;
+  },
+);
 
 export async function getHouseholdById(
   householdId: string,
