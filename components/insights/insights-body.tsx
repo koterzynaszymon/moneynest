@@ -10,6 +10,7 @@ import {
 import { CategoryIncomeChart } from "./category-income-chart";
 import { CategorySpendingChart } from "./category-spending-chart";
 import { InsightsKpiStrip } from "./insights-kpi-strip";
+import { WalletSpendingChart } from "./wallet-spending-chart";
 import { WeekByWeekSpendingChart } from "./week-by-week-spending-chart";
 
 export function InsightsBody({
@@ -72,6 +73,22 @@ export function InsightsBody({
           </CardHeader>
           <CardContent>
             <CategoryIncomeChart
+              householdId={householdId}
+              year={year}
+              month={month}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Spending by wallet</CardTitle>
+            <CardDescription>
+              See which money sources expenses came from.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <WalletSpendingChart
               householdId={householdId}
               year={year}
               month={month}

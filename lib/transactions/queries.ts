@@ -144,6 +144,11 @@ export type CategoryIncomeTotals = {
   values: number[];
 };
 
+export type WalletExpenseTotals = {
+  labels: string[];
+  values: number[];
+};
+
 export async function getWeeklyExpenseTotals(
   householdId: string,
   year: number,
@@ -304,6 +309,68 @@ export async function getCategoryIncomeTotals(
   }
 
   const totals = Array.from(totalsByCategory.values()).sort(
+    (a, b) => b.value - a.value,
+  );
+
+  return {
+    labels: totals.map((total) => total.label),
+    values: totals.map((total) => total.value),
+  };
+}
+
+type WalletExpenseRow = {
+  amount: number | string;
+  wallet_id: string | null;
+  wallets:
+    | {
+        id: string;
+        name: string;
+      }
+    | {
+        id: string;
+        name: string;
+      }[]
+    | null;
+};
+
+export async function getWalletExpenseTotals(
+  householdId: string,
+  year: number,
+  month: number,
+): Promise<WalletExpenseTotals> {
+  const supabase = await createClient();
+  const lastDay = new Date(year, month, 0).getDate();
+  const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
+  const endDate = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+
+  const { data, error } = await supabase
+    .from("transactions")
+    .select("amount, wallet_id, wallets(id, name), categories!inner(type)")
+    .eq("household_id", householdId)
+    .eq("categories.type", "expense")
+    .gte("transaction_date", startDate)
+    .lte("transaction_date", endDate);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const totalsByWallet = new Map<string, { label: string; value: number }>();
+
+  for (const row of (data ?? []) as unknown as WalletExpenseRow[]) {
+    const wallet = Array.isArray(row.wallets) ? row.wallets[0] : row.wallets;
+    const key = wallet?.id ?? "unassigned";
+    const label = wallet?.name ?? "Unassigned";
+
+    const current = totalsByWallet.get(key) ?? { label, value: 0 };
+
+    totalsByWallet.set(key, {
+      label: current.label,
+      value: current.value + Number(row.amount),
+    });
+  }
+
+  const totals = Array.from(totalsByWallet.values()).sort(
     (a, b) => b.value - a.value,
   );
 
