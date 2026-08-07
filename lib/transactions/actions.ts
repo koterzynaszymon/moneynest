@@ -65,6 +65,7 @@ export async function updateTransaction(
   amount: number,
   description: string,
   transactionDate: string,
+  walletId?: string | null,
 ): Promise<Response> {
   const supabase = await createClient();
   const user = await requireUserId();
@@ -85,6 +86,15 @@ export async function updateTransaction(
   );
   if (!category.success) return category;
 
+  const resolvedWalletId = walletId?.trim() ? walletId.trim() : null;
+  if (resolvedWalletId) {
+    const wallet = await requireWalletInHousehold(
+      resolvedWalletId,
+      transaction.data.household_id,
+    );
+    if (!wallet.success) return wallet;
+  }
+
   const { data, error } = await supabase
     .from("transactions")
     .update({
@@ -92,6 +102,7 @@ export async function updateTransaction(
       amount: amount,
       description: description,
       transaction_date: transactionDate,
+      wallet_id: resolvedWalletId,
       updated_at: new Date().toISOString(),
     })
     .eq("id", transactionId)

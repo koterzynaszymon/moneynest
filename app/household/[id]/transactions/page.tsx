@@ -77,6 +77,7 @@ export default async function TransactionsPage({
       <TransactionsBody
         transactions={transactions}
         categories={categories}
+        wallets={wallets}
         currentPage={page}
         totalPages={totalPages}
         householdId={id}

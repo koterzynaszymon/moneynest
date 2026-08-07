@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { Category } from "@/lib/types/categories";
 import type { Transactions } from "@/lib/types/transactions";
+import type { Wallets } from "@/lib/types/wallets";
 import {
   Table,
   TableBody,
@@ -34,6 +35,7 @@ type TransactionOrder = "asc" | "desc";
 type TransactionsBodyProps = {
   transactions: Transactions[];
   categories: Category[];
+  wallets: Wallets[];
   currentPage: number;
   totalPages: number;
   householdId: string;
@@ -44,6 +46,7 @@ type TransactionsBodyProps = {
 export function TransactionsBody({
   transactions,
   categories,
+  wallets,
   currentPage,
   totalPages,
   householdId,
@@ -223,6 +226,7 @@ export function TransactionsBody({
             </TableHead>
             <TableHead>Description</TableHead>
             <TableHead>Category</TableHead>
+            <TableHead>Wallet</TableHead>
             <TableHead className="text-right">
               <Button variant="ghost" size="sm" className="ml-auto" asChild>
                 <Link
@@ -263,6 +267,9 @@ export function TransactionsBody({
                   {getCategoryName(transaction.category_id, categories)}
                 </Badge>
               </TableCell>
+              <TableCell className="text-muted-foreground">
+                {getWalletName(transaction.wallet_id, wallets)}
+              </TableCell>
               <TableCell
                 className={`${getCategoryType(transaction.category_id, categories) === "income" ? "text-green-500" : "text-red-500"} text-right font-bold`}
               >
@@ -272,6 +279,7 @@ export function TransactionsBody({
                 <EditTransactionModal
                   transaction={transaction}
                   categories={categories}
+                  wallets={wallets}
                 />
                 <Button
                   variant="outline"
@@ -346,6 +354,11 @@ function getCategoryType(categoryId: string, categories: Category[]) {
 
 function getCategoryName(categoryId: string, categories: Category[]) {
   return categories.find((category) => category.id === categoryId)?.name;
+}
+
+function getWalletName(walletId: string | null, wallets: Wallets[]) {
+  if (!walletId) return "—";
+  return wallets.find((wallet) => wallet.id === walletId)?.name ?? "—";
 }
 
 function getTransactionTypeFilter(value: string | null): TransactionTypeFilter {

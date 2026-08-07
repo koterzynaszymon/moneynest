@@ -23,10 +23,12 @@ import { updateTransaction } from "@/lib/transactions/actions";
 import { TRANSACTION_DESCRIPTION_MAX_LENGTH } from "@/lib/transactions/constants";
 import type { Category } from "@/lib/types/categories";
 import type { Transactions } from "@/lib/types/transactions";
+import type { Wallets } from "@/lib/types/wallets";
 
 type EditTransactionModalProps = {
   transaction: Transactions;
   categories: Category[];
+  wallets: Wallets[];
 };
 
 function getDateInputValue(date: string) {
@@ -36,10 +38,12 @@ function getDateInputValue(date: string) {
 export default function EditTransactionModal({
   transaction,
   categories,
+  wallets,
 }: EditTransactionModalProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [categoryId, setCategoryId] = useState(transaction.category_id);
+  const [walletId, setWalletId] = useState(transaction.wallet_id ?? "");
   const [amount, setAmount] = useState(String(transaction.amount));
   const [description, setDescription] = useState(transaction.description ?? "");
   const [transactionDate, setTransactionDate] = useState(
@@ -51,6 +55,7 @@ export default function EditTransactionModal({
 
   function resetForm() {
     setCategoryId(transaction.category_id);
+    setWalletId(transaction.wallet_id ?? "");
     setAmount(String(transaction.amount));
     setDescription(transaction.description ?? "");
     setTransactionDate(getDateInputValue(transaction.transaction_date));
@@ -66,6 +71,7 @@ export default function EditTransactionModal({
         amount ? Number(amount) : 0,
         description.trim(),
         transactionDate,
+        walletId || null,
       );
       if (result.success) {
         setOpen(false);
@@ -141,6 +147,29 @@ export default function EditTransactionModal({
                       }
                     >
                       {category.name} ({category.type})
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field>
+                <Label htmlFor={`transaction-wallet-${transaction.id}`}>
+                  Wallet{" "}
+                  <span className="font-normal text-muted-foreground">
+                    (optional)
+                  </span>
+                </Label>
+                <select
+                  id={`transaction-wallet-${transaction.id}`}
+                  name="walletId"
+                  value={walletId}
+                  onChange={(e) => setWalletId(e.target.value)}
+                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="">No wallet</option>
+                  {wallets.map((wallet) => (
+                    <option key={wallet.id} value={wallet.id}>
+                      {wallet.name}
                     </option>
                   ))}
                 </select>
